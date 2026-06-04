@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buffet · Madita & Jan · 10. Hochzeitstag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Mulish:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --green-deep:#5a7741;
+    --green:#7a9a5e;
+    --green-soft:#a7c489;
+    --green-mist:#eef4e6;
+    --green-line:#cdddb8;
+    --gold:#b08d3e;
+    --gold-deep:#8f6f2a;
+    --ink:#4a5340;
+    --ink-soft:#6f7763;
+    --paper:#fffefb;
+    --paper-warm:#fcfbf4;
+    --shadow:rgba(90,119,65,.13);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Mulish',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(167,196,137,.22), transparent 38%),
+      radial-gradient(circle at 88% 92%, rgba(167,196,137,.20), transparent 40%),
+      var(--paper-warm);
+    min-height:100vh;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:0 18px 80px}
+
+  /* ---------- HERO / KARTEN-OPTIK ---------- */
+  .card{
+    position:relative;
+    margin:28px auto 0;
+    background:var(--paper);
+    border:1px solid var(--green-line);
+    box-shadow:0 18px 50px var(--shadow);
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";position:absolute;inset:10px;
+    border:1.5px solid var(--green-soft);
+    pointer-events:none;z-index:3;
+  }
+  /* florale Ecken */
+  .leaf{position:absolute;font-size:0;line-height:0;z-index:2;opacity:.9}
+  .leaf svg{display:block}
+  .leaf.tl{top:-6px;left:-6px}
+  .leaf.tr{top:-6px;right:-6px;transform:scaleX(-1)}
+  .hero{
+    position:relative;z-index:4;
+    padding:64px 30px 30px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(26px,5vw,34px);
+    color:var(--green-deep);
+    letter-spacing:.04em;
+    display:flex;align-items:center;justify-content:center;gap:14px;
+  }
+  .eyebrow::before,.eyebrow::after{content:"🌿";font-size:.6em;filter:grayscale(.1)}
+  .rule{width:120px;height:1px;background:var(--green-line);margin:14px auto}
+  .names{
+    font-family:'Dancing Script',cursive;
+    font-weight:700;
+    font-size:clamp(48px,11vw,82px);
+    color:var(--gold);
+    line-height:1;
+    margin:6px 0 4px;
+    text-shadow:0 1px 0 rgba(143,111,42,.12);
+  }
+  .rule-wide{width:min(360px,80%);height:1px;background:var(--green-line);margin:16px auto 22px}
+  .when{font-weight:700;color:var(--ink);font-size:clamp(16px,3vw,19px);letter-spacing:.01em}
+  .where{color:var(--ink-soft);font-size:clamp(14px,2.6vw,16px);margin-top:4px}
+  .occasion{margin-top:22px}
+  .occasion .small{color:var(--ink-soft);font-size:15px}
+  .occasion .big{
+    font-family:'Dancing Script',cursive;font-weight:700;
+    font-size:clamp(30px,7vw,46px);color:var(--gold);line-height:1.1;margin:2px 0 6px;
+  }
+  .lights{
+    position:relative;z-index:4;height:70px;
+    background:
+      radial-gradient(ellipse at bottom, rgba(167,196,137,.30), transparent 70%);
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+
+  /* ---------- INTRO TEXT ---------- */
+  .intro{
+    text-align:center;max-width:640px;margin:36px auto 8px;padding:0 8px;
+  }
+  .intro h2{
+    font-family:'Cormorant Garamond',serif;font-weight:600;
+    font-size:clamp(26px,5vw,36px);color:var(--green-deep);margin-bottom:10px;
+  }
+  .intro p{color:var(--ink-soft);font-size:16px}
+
+  /* ---------- FORTSCHRITT ---------- */
+  .progress-card{
+    background:var(--green-mist);
+    border:1px solid var(--green-line);
+    border-radius:18px;
+    padding:18px 22px;
+    margin:26px auto 0;
+    max-width:640px;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;
+  }
+  .progress-card .num{font-family:'Cormorant Garamond',serif;font-size:40px;color:var(--gold);font-weight:600;line-height:1}
+  .progress-card .lbl{color:var(--ink-soft);font-size:14px}
+  .bar{flex:1;min-width:160px;height:9px;background:#fff;border-radius:99px;overflow:hidden;border:1px solid var(--green-line)}
+  .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green-soft),var(--green));transition:width .6s ease}
+
+  /* ---------- KATEGORIEN ---------- */
+  .cat{margin-top:34px}
+  .cat-head{
+    display:flex;align-items:baseline;gap:12px;margin:0 4px 14px;
+    border-bottom:1px solid var(--green-line);padding-bottom:8px;
+  }
+  .cat-emoji{font-size:24px;line-height:1}
+  .cat-title{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green-deep);font-weight:600}
+  .cat-meta{margin-left:auto;font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  .cat-hint{font-size:13.5px;color:var(--ink-soft);margin:-8px 4px 14px;font-style:italic}
+
+  .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}
+  .slot{
+    background:var(--paper);border:1px solid var(--green-line);border-radius:14px;
+    padding:14px 16px;display:flex;flex-direction:column;gap:6px;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s;
+    position:relative;
+  }
+  .slot:hover{transform:translateY(-2px);box-shadow:0 8px 22px var(--shadow)}
+  .slot.taken{background:var(--green-mist);border-color:var(--green-soft)}
+  .slot-top{display:flex;align-items:center;gap:8px}
+  .slot-idx{
+    width:26px;height:26px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;color:#fff;background:var(--green-soft);
+  }
+  .slot.taken .slot-idx{background:var(--green)}
+  .slot-name{font-weight:600;color:var(--ink);font-size:15px}
+  .slot.taken .slot-name{color:var(--green-deep)}
+  .slot-note{font-size:13px;color:var(--ink-soft)}
+  .slot-by{font-size:12.5px;color:var(--green-deep);font-weight:600}
+  .slot-by .who{font-style:normal}
+  .btn-take{
+    margin-top:4px;align-self:flex-start;
+    background:var(--gold);color:#fff;border:none;border-radius:99px;
+    padding:7px 16px;font-family:'Mulish',sans-serif;font-weight:600;font-size:13.5px;
+    cursor:pointer;transition:background .15s, transform .1s;
+  }
+  .btn-take:hover{background:var(--gold-deep)}
+  .btn-take:active{transform:scale(.97)}
+  .btn-free{
+    margin-top:2px;align-self:flex-start;background:none;border:none;
+    color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;
+    padding:2px 0;
+  }
+  .check{color:var(--green);font-size:15px}
+
+  /* ---------- EIGENER BEITRAG ---------- */
+  .own{
+    margin-top:40px;background:var(--green-mist);border:1px dashed var(--green-soft);
+    border-radius:18px;padding:22px 22px 24px;text-align:center;
+  }
+  .own h3{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--green-deep);font-weight:600;margin-bottom:6px}
+  .own p{color:var(--ink-soft);font-size:14.5px;margin-bottom:14px}
+  .own .btn-take{align-self:center}
+
+  /* ---------- MODAL ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(74,83,64,.45);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:18px;z-index:50;
+  }
+  .overlay.open{display:flex}
+  .modal{
+    background:var(--paper);border-radius:22px;max-width:430px;width:100%;
+    padding:28px 26px;box-shadow:0 30px 70px rgba(74,83,64,.35);
+    border:1px solid var(--green-line);position:relative;
+    animation:pop .25s ease;
+  }
+  @keyframes pop{from{transform:translateY(12px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .modal h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green-deep);font-weight:600;margin-bottom:4px}
+  .modal .sub{color:var(--ink-soft);font-size:14px;margin-bottom:18px}
+  .modal label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin:14px 0 5px}
+  .modal input,.modal select{
+    width:100%;padding:11px 13px;border:1px solid var(--green-line);border-radius:11px;
+    font-family:'Mulish',sans-serif;font-size:15px;color:var(--ink);background:var(--paper-warm);
+  }
+  .modal input:focus,.modal select:focus{outline:none;border-color:var(--green-soft);box-shadow:0 0 0 3px rgba(167,196,137,.3)}
+  .modal .opt{font-weight:400;color:var(--ink-soft)}
+  .modal-actions{display:flex;gap:10px;margin-top:22px}
+  .modal-actions button{flex:1;border-radius:99px;padding:11px;font-family:'Mulish',sans-serif;font-weight:600;font-size:14.5px;cursor:pointer;border:none}
+  .save{background:var(--gold);color:#fff}
+  .save:hover{background:var(--gold-deep)}
+  .cancel{background:#fff;color:var(--ink-soft);border:1px solid var(--green-line)!important}
+  .x{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--ink-soft);cursor:pointer;line-height:1}
+
+  /* ---------- STATUS / FOOTER ---------- */
+  .status{text-align:center;padding:30px 12px;color:var(--ink-soft)}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--green-deep);color:#fff;padding:13px 24px;border-radius:99px;
+    font-size:14.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.2);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:60;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  footer{text-align:center;padding:30px 12px 0;color:var(--ink-soft);font-size:13px}
+  footer .heart{color:var(--gold)}
+  .config-warn{
+    max-width:640px;margin:26px auto 0;background:#fff7e6;border:1px solid #e8c97a;
+    border-radius:14px;padding:14px 18px;color:#8a6d1f;font-size:13.5px;text-align:center;
+  }
+
+  /* ---------- TABS ---------- */
+  .tabs{
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+    margin:30px auto 0;max-width:640px;
+  }
+  .tab{
+    font-family:'Mulish',sans-serif;font-weight:600;font-size:14.5px;
+    color:var(--ink-soft);background:var(--paper);
+    border:1px solid var(--green-line);border-radius:99px;
+    padding:10px 20px;cursor:pointer;transition:all .18s;
+  }
+  .tab:hover{border-color:var(--green-soft);color:var(--green-deep)}
+  .tab.active{background:var(--green-deep);color:#fff;border-color:var(--green-deep);box-shadow:0 6px 16px var(--shadow)}
+
+  .panel{display:none;animation:fade .35s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- INFO-GRID (Wissenswertes) ---------- */
+  .info-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:16px;margin-top:26px;
+  }
+  .info-card{
+    background:var(--paper);border:1px solid var(--green-line);border-radius:18px;
+    padding:22px 22px 20px;transition:transform .15s,box-shadow .15s;
+    position:relative;overflow:hidden;
+  }
+  .info-card::after{
+    content:"";position:absolute;top:-30px;right:-30px;width:90px;height:90px;
+    background:radial-gradient(circle,rgba(167,196,137,.22),transparent 70%);border-radius:50%;
+  }
+  .info-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px var(--shadow)}
+  .info-ico{font-size:30px;margin-bottom:8px}
+  .info-card h3{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--green-deep);font-weight:600;margin-bottom:6px}
+  .info-card p{color:var(--ink-soft);font-size:14.5px;line-height:1.6}
+  .info-card strong{color:var(--ink)}
+  .info-note{
+    text-align:center;margin-top:22px;color:var(--ink-soft);font-size:13px;
+    background:var(--green-mist);border:1px dashed var(--green-soft);border-radius:12px;padding:10px 16px;
+  }
+
+  /* ---------- FOTO-BEREICH ---------- */
+  .photo-card{
+    display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center;
+    background:var(--paper);border:1px solid var(--green-line);border-radius:22px;
+    padding:30px;margin-top:26px;box-shadow:0 12px 30px var(--shadow);
+  }
+  .qr-box{
+    flex:none;width:200px;height:200px;background:#fff;border-radius:18px;
+    border:1px solid var(--green-line);display:flex;align-items:center;justify-content:center;
+    padding:12px;
+  }
+  .qr-box img,.qr-box canvas{width:100%;height:100%;border-radius:8px}
+  .qr-placeholder{color:var(--ink-soft);font-size:13px;text-align:center;line-height:1.5}
+  .photo-text{flex:1;min-width:240px}
+  .photo-text h3{font-family:'Cormorant Garamond',serif;font-size:25px;color:var(--green-deep);font-weight:600;margin-bottom:12px}
+  .photo-text ol{margin:0 0 18px;padding-left:20px;color:var(--ink-soft);font-size:15px}
+  .photo-text ol li{margin-bottom:7px}
+  .photo-text strong{color:var(--ink)}
+  .photo-btn{
+    display:inline-block;background:var(--gold);color:#fff;text-decoration:none;
+    border-radius:99px;padding:12px 24px;font-weight:600;font-size:15px;transition:background .15s,transform .1s;
+  }
+  .photo-btn:hover{background:var(--gold-deep)}
+  .photo-btn:active{transform:scale(.98)}
+  .photo-hint{color:var(--ink-soft);font-size:13px;margin-top:12px}
+
+  /* ---------- PASSWORT-GATE ---------- */
+  .gate{
+    position:fixed;inset:0;z-index:100;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(167,196,137,.30), transparent 42%),
+      radial-gradient(circle at 85% 88%, rgba(167,196,137,.26), transparent 44%),
+      var(--paper-warm);
+  }
+  .gate.hidden{display:none}
+  .gate-card{
+    background:var(--paper);border:1px solid var(--green-line);
+    border-radius:24px;box-shadow:0 24px 60px var(--shadow);
+    padding:42px 34px 36px;max-width:420px;width:100%;text-align:center;
+    position:relative;
+  }
+  .gate-card::before{content:"";position:absolute;inset:9px;border:1.5px solid var(--green-soft);border-radius:17px;pointer-events:none}
+  .gate-leaf{font-size:34px;margin-bottom:8px}
+  .gate-eyebrow{font-family:'Dancing Script',cursive;font-weight:700;font-size:34px;color:var(--gold);line-height:1}
+  .gate-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;color:var(--green-deep);margin:4px 0 14px}
+  .gate-sub{color:var(--ink-soft);font-size:14.5px;margin-bottom:22px;line-height:1.55}
+  .gate-card input{
+    width:100%;padding:13px 15px;border:1px solid var(--green-line);border-radius:12px;
+    font-family:'Mulish',sans-serif;font-size:16px;color:var(--ink);background:var(--paper-warm);text-align:center;
+  }
+  .gate-card input:focus{outline:none;border-color:var(--green-soft);box-shadow:0 0 0 3px rgba(167,196,137,.3)}
+  .gate-card button{
+    margin-top:14px;width:100%;background:var(--gold);color:#fff;border:none;border-radius:99px;
+    padding:13px;font-family:'Mulish',sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s,transform .1s;
+  }
+  .gate-card button:hover{background:var(--gold-deep)}
+  .gate-card button:active{transform:scale(.98)}
+  .gate-err{color:#b5562f;font-size:13.5px;margin-top:12px;min-height:18px}
+  .gate-card.shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+</head>
+<body>
+<!-- PASSWORT-GATE -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-leaf">🌿</div>
+    <div class="gate-eyebrow">Madita &amp; Jan</div>
+    <h1 class="gate-title">10. Hochzeitstag</h1>
+    <p class="gate-sub">Bitte gib das Passwort aus eurer Einladung ein, um zum Buffet zu gelangen.</p>
+    <input id="gatePw" type="password" placeholder="Passwort" autocomplete="off">
+    <button id="gateBtn" onclick="checkGate()">Eintreten</button>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO im Kartenstil -->
+  <div class="card">
+    <div class="leaf tl">
+      <svg width="150" height="120" viewBox="0 0 150 120">
+        <g fill="#a7c489" opacity=".9">
+          <ellipse cx="30" cy="25" rx="22" ry="11" transform="rotate(-30 30 25)"/>
+          <ellipse cx="62" cy="18" rx="18" ry="9" transform="rotate(-12 62 18)"/>
+          <ellipse cx="22" cy="55" rx="16" ry="8" transform="rotate(35 22 55)"/>
+          <ellipse cx="55" cy="48" rx="14" ry="7" transform="rotate(20 55 48)"/>
+        </g>
+        <g fill="#7a9a5e" opacity=".85">
+          <ellipse cx="45" cy="35" rx="14" ry="7" transform="rotate(-18 45 35)"/>
+          <ellipse cx="18" cy="38" rx="11" ry="6" transform="rotate(50 18 38)"/>
+        </g>
+        <circle cx="40" cy="30" r="4" fill="#fff"/><circle cx="40" cy="30" r="1.6" fill="#e8c97a"/>
+        <circle cx="20" cy="58" r="3.4" fill="#fff"/><circle cx="20" cy="58" r="1.3" fill="#e8c97a"/>
+      </svg>
+    </div>
+    <div class="leaf tr">
+      <svg width="150" height="120" viewBox="0 0 150 120">
+        <g fill="#a7c489" opacity=".9">
+          <ellipse cx="30" cy="25" rx="22" ry="11" transform="rotate(-30 30 25)"/>
+          <ellipse cx="62" cy="18" rx="18" ry="9" transform="rotate(-12 62 18)"/>
+          <ellipse cx="22" cy="55" rx="16" ry="8" transform="rotate(35 22 55)"/>
+          <ellipse cx="55" cy="48" rx="14" ry="7" transform="rotate(20 55 48)"/>
+        </g>
+        <g fill="#7a9a5e" opacity=".85">
+          <ellipse cx="45" cy="35" rx="14" ry="7" transform="rotate(-18 45 35)"/>
+        </g>
+        <circle cx="40" cy="30" r="4" fill="#fff"/><circle cx="40" cy="30" r="1.6" fill="#e8c97a"/>
+      </svg>
+    </div>
+
+    <div class="hero">
+      <div class="eyebrow">Buffet</div>
+      <div class="rule"></div>
+      <div class="names">Madita &amp; Jan</div>
+      <div class="rule-wide"></div>
+      <div class="when">Samstag · 29. August 2026</div>
+      <div class="where">Heidkamp 30A · 25365 Sparrieshoop · ab 15:30 Uhr</div>
+      <div class="occasion">
+        <div class="small">Wir feiern unseren</div>
+        <div class="big">10. Hochzeitstag</div>
+      </div>
+    </div>
+
+    <!-- Lichterkette -->
+    <div class="lights">
+      <svg width="100%" height="70" viewBox="0 0 600 70" preserveAspectRatio="none">
+        <path d="M0,12 Q300,58 600,12" fill="none" stroke="#b9a06a" stroke-width="1.4"/>
+        <g>
+          <circle cx="70" cy="34" r="6" fill="#f6e07a"/><line x1="70" y1="26" x2="70" y2="22" stroke="#b9a06a"/>
+          <circle cx="150" cy="44" r="6" fill="#f6e07a"/><line x1="150" y1="36" x2="150" y2="32" stroke="#b9a06a"/>
+          <circle cx="230" cy="50" r="6" fill="#f6e07a"/><line x1="230" y1="42" x2="230" y2="38" stroke="#b9a06a"/>
+          <circle cx="310" cy="52" r="6" fill="#f6e07a"/><line x1="310" y1="44" x2="310" y2="40" stroke="#b9a06a"/>
+          <circle cx="390" cy="50" r="6" fill="#f6e07a"/><line x1="390" y1="42" x2="390" y2="38" stroke="#b9a06a"/>
+          <circle cx="470" cy="44" r="6" fill="#f6e07a"/><line x1="470" y1="36" x2="470" y2="32" stroke="#b9a06a"/>
+          <circle cx="540" cy="34" r="6" fill="#f6e07a"/><line x1="540" y1="26" x2="540" y2="22" stroke="#b9a06a"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- TAB-NAVIGATION -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="info"   onclick="switchTab('info')">🌿 Wissenswertes</button>
+    <button class="tab"        data-tab="buffet" onclick="switchTab('buffet')">🍽️ Buffet</button>
+    <button class="tab"        data-tab="fotos"  onclick="switchTab('fotos')">📸 Fotos</button>
+  </nav>
+
+  <!-- ===================== REITER: WISSENSWERTES ===================== -->
+  <section class="panel active" id="panel-info">
+    <div class="intro">
+      <h2>Schön, dass ihr dabei seid!</h2>
+      <p>Hier findet ihr alles Wichtige rund um unseren Tag. Schaut in Ruhe durch – bei Fragen meldet euch einfach bei uns. 🌿</p>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-ico">🕒</div>
+        <h3>Ablauf</h3>
+        <p>Wir starten um <strong>15:30 Uhr</strong> – kommt gern nach und nach vorbei, ganz entspannt. Nachmittags Kaffee &amp; Kuchen, später Herzhaftes vom Buffet. Gefeiert wird bis <strong>open end</strong>.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-ico">🚗</div>
+        <h3>Parken</h3>
+        <p>Die Parkmöglichkeiten direkt am Haus sind <strong>begrenzt</strong>. Bitte bildet wenn möglich Fahrgemeinschaften. Entlang der Straße kann geparkt werden – bitte achtet auf freie Einfahrten und die Durchfahrt für andere.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-ico">🏰</div>
+        <h3>Hüpfburg</h3>
+        <p>Für die Kinder steht eine <strong>Hüpfburg</strong> bereit. Bitte habt ein Auge auf eure Kleinen – die Nutzung erfolgt auf eigene Verantwortung. Schuhe aus, und vor dem Essen am besten eine kleine Pause. 😊</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-ico">🍴</div>
+        <h3>Essen &amp; Trinken</h3>
+        <p>Für Getränke ist gesorgt. Unser Buffet ist ein <strong>Bring &amp; Share</strong> – wer mag, trägt sich im Reiter „Buffet" für einen Beitrag ein. Über jede mitgebrachte Köstlichkeit freuen wir uns!</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-ico">🌦️</div>
+        <h3>Wetter &amp; Kleidung</h3>
+        <p>Gefeiert wird draußen im Garten – ein Zelt bietet Schutz. Denkt je nach Wetter an etwas Wärmeres für den Abend oder Sonnenschutz für den Nachmittag.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-ico">📞</div>
+        <h3>Kontakt</h3>
+        <p>Ihr findet uns nicht oder verspätet euch? Meldet euch kurz bei <strong>Jan</strong> (Telefonnummer hier eintragen) oder <strong>Madita</strong>. Wir freuen uns auf euch!</p>
+      </div>
+    </div>
+
+    <div class="info-note">
+      ✏️ <em>Diese Inhalte sind Platzhalter – passt Texte, Telefonnummern und Details nach Belieben an.</em>
+    </div>
+  </section>
+
+  <!-- ===================== REITER: BUFFET ===================== -->
+  <section class="panel" id="panel-buffet">
+    <div class="intro">
+      <h2>Bring &amp; Share – das gemeinsame Buffet</h2>
+      <p>Damit ein buntes, ausgewogenes Buffet entsteht, freuen wir uns, wenn ihr euch für einen Beitrag eintragt. Ihr seht hier live, was schon dabei ist und wo noch etwas fehlt. Alles freiwillig – über jede Köstlichkeit freuen wir uns! 🌿</p>
+    </div>
+
+    <div id="configWarn" class="config-warn" style="display:none">
+      ⚙️ Die Seite ist noch nicht mit der Datenbank verbunden. Trage oben im Code deine Supabase-Daten ein, damit Einträge gespeichert werden.
+    </div>
+
+    <!-- FORTSCHRITT -->
+    <div class="progress-card">
+      <div style="text-align:center">
+        <div class="num"><span id="filledCount">0</span></div>
+        <div class="lbl">belegt</div>
+      </div>
+      <div class="bar"><span id="progressBar"></span></div>
+      <div style="text-align:center">
+        <div class="num" id="totalCount">0</div>
+        <div class="lbl">Beiträge gesamt</div>
+      </div>
+    </div>
+
+    <!-- KATEGORIEN werden per JS gerendert -->
+    <div id="categories"></div>
+
+    <!-- EIGENER BEITRAG -->
+    <div class="own">
+      <h3>Etwas anderes mitbringen?</h3>
+      <p>Du hast eine Idee, die in keine Kategorie passt? Trag deinen eigenen Beitrag ein.</p>
+      <button class="btn-take" onclick="openOwn()">+ Eigenen Beitrag hinzufügen</button>
+    </div>
+  </section>
+
+  <!-- ===================== REITER: FOTOS ===================== -->
+  <section class="panel" id="panel-fotos">
+    <div class="intro">
+      <h2>Eure Fotos vom Tag</h2>
+      <p>Helft uns, den Tag in Bildern festzuhalten! Ladet eure schönsten Schnappschüsse hoch – sie landen direkt in unserem gemeinsamen Album. 📸</p>
+    </div>
+
+    <div class="photo-card">
+      <div class="qr-box" id="qrBox">
+        <!-- QR-Code wird per JS erzeugt -->
+        <div class="qr-placeholder">QR-Code<br>erscheint hier</div>
+      </div>
+      <div class="photo-text">
+        <h3>So einfach geht's</h3>
+        <ol>
+          <li>Mit der Handy-Kamera den <strong>QR-Code</strong> scannen</li>
+          <li>Fotos auswählen und hochladen</li>
+          <li>Fertig – sie landen automatisch in unserem Album</li>
+        </ol>
+        <a class="photo-btn" id="photoLink" href="#" target="_blank" rel="noopener">📤 Direkt Fotos hochladen</a>
+        <p class="photo-hint">Ihr seht nur den Upload – das Album selbst bleibt privat bei uns.</p>
+      </div>
+    </div>
+
+    <div class="config-warn" id="photoWarn" style="display:none">
+      ⚙️ Foto-Upload noch nicht verbunden. Trage oben im Code unter <strong>PHOTO_UPLOAD_URL</strong> deinen Nextcloud File-Drop-Link ein, dann erscheinen QR-Code und Button automatisch.
+    </div>
+  </section>
+
+  <footer>
+    Wir freuen uns auf euch! <span class="heart">✦</span><br>
+    Madita &amp; Jan
+  </footer>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="x" onclick="closeModal()">×</button>
+    <h3 id="mTitle">Beitrag eintragen</h3>
+    <div class="sub" id="mSub"></div>
+    <div id="ownFields" style="display:none">
+      <label>Was bringst du mit?</label>
+      <input id="fDish" type="text" placeholder="z. B. Griechischer Bauernsalat" maxlength="80">
+    </div>
+    <label>Dein Name</label>
+    <input id="fName" type="text" placeholder="Vor- und Nachname" maxlength="50">
+    <label>Notiz <span class="opt">(optional)</span></label>
+    <input id="fNote" type="text" placeholder="z. B. vegetarisch · für ca. 12 Personen" maxlength="80">
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="save" id="saveBtn" onclick="saveEntry()">Eintragen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   1) SUPABASE-KONFIGURATION  – HIER DEINE WERTE EINTRAGEN
+   ========================================================= */
+const SUPABASE_URL  = "https://rpuqhbdxekgvjxyiabnl.supabase.co";      // z.B. https://xxxx.supabase.co
+const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwdXFoYmR4ZWtndmp4eWlhYm5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTQ2NjgsImV4cCI6MjA5NjE3MDY2OH0.-SEPcQlDY68OoseXSARiimmAUagUdnP36Z-2LNjUjsw";  // der "anon public" Key
+const SITE_PASSWORD = "Hochzeitstag";            // Passwort für den Zugang zur Seite
+const PHOTO_UPLOAD_URL = "https://nextcloud.wiese-tech.com/s/JcqEi6j95fGrHn5"; // öffentlicher Nextcloud-Upload-Link (File Drop)
+/* ========================================================= */
+
+/* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
+const CATEGORIES = [
+  { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  hint:"Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
+  { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  hint:"Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt, schön sättigend." },
+  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  hint:"Dips, Antipasti, gefüllte Eier, Wraps." },
+  { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  hint:"Begleitung zu den Salaten." },
+  { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  hint:"Tiramisu, Obstsalat, Muffins & Co." },
+];
+
+let sb = null;
+let entries = {};   // key: "cat#index" -> {name, dish, note}
+let current = null; // {cat, index, isOwn}
+
+const configured = SUPABASE_URL.startsWith("http") && SUPABASE_KEY.length > 20;
+if(configured){ sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
+else { document.getElementById("configWarn").style.display="block"; }
+
+/* ---------- Rendern ---------- */
+function render(){
+  const root = document.getElementById("categories");
+  root.innerHTML = "";
+  let total=0, filled=0;
+
+  CATEGORIES.forEach(cat=>{
+    let catFilled=0;
+    const sec=document.createElement("div"); sec.className="cat";
+    const slotsHtml=[];
+    for(let i=0;i<cat.slots;i++){
+      total++;
+      const id=cat.key+"#"+i;
+      const e=entries[id];
+      if(e){filled++;catFilled++;}
+      slotsHtml.push(slotMarkup(cat,i,e));
+    }
+    sec.innerHTML =
+      `<div class="cat-head">
+         <span class="cat-emoji">${cat.emoji}</span>
+         <span class="cat-title">${cat.title}</span>
+         <span class="cat-meta">${catFilled}/${cat.slots} belegt</span>
+       </div>
+       <div class="cat-hint">${cat.hint}</div>
+       <div class="slots">${slotsHtml.join("")}</div>`;
+    root.appendChild(sec);
+  });
+
+  // Eigene Beiträge (Schlüssel beginnt mit "eigen#")
+  const ownIds = Object.keys(entries).filter(k=>k.startsWith("eigen#"));
+  if(ownIds.length){
+    const sec=document.createElement("div"); sec.className="cat";
+    const cards=ownIds.map(id=>{
+      const e=entries[id];
+      filled++; total++;
+      return `<div class="slot taken">
+        <div class="slot-top"><span class="slot-idx">✓</span>
+          <span class="slot-name">${esc(e.dish)}</span></div>
+        ${e.note?`<div class="slot-note">${esc(e.note)}</div>`:""}
+        <div class="slot-by">von <span class="who">${esc(e.name)}</span></div>
+        <button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>
+      </div>`;
+    });
+    sec.innerHTML =
+      `<div class="cat-head">
+         <span class="cat-emoji">✨</span>
+         <span class="cat-title">Weitere Beiträge</span>
+         <span class="cat-meta">${ownIds.length} eingetragen</span>
+       </div>
+       <div class="cat-hint">Eigene Ideen unserer Gäste.</div>
+       <div class="slots">${cards.join("")}</div>`;
+    root.appendChild(sec);
+  }
+
+  document.getElementById("filledCount").textContent=filled;
+  document.getElementById("totalCount").textContent=total;
+  document.getElementById("progressBar").style.width=(total?Math.round(filled/total*100):0)+"%";
+}
+
+function slotMarkup(cat,i,e){
+  const id=cat.key+"#"+i;
+  if(e){
+    return `<div class="slot taken">
+      <div class="slot-top"><span class="slot-idx">✓</span>
+        <span class="slot-name">${esc(e.dish||cat.title+" "+(i+1))}</span></div>
+      ${e.note?`<div class="slot-note">${esc(e.note)}</div>`:""}
+      <div class="slot-by">von <span class="who">${esc(e.name)}</span></div>
+      <button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>
+    </div>`;
+  }
+  return `<div class="slot">
+    <div class="slot-top"><span class="slot-idx">${i+1}</span>
+      <span class="slot-name" style="color:var(--ink-soft)">Noch frei</span></div>
+    <button class="btn-take" onclick="openSlot('${cat.key}',${i})">Übernehmen</button>
+  </div>`;
+}
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- Modal ---------- */
+function openSlot(catKey,index){
+  const cat=CATEGORIES.find(c=>c.key===catKey);
+  current={cat:catKey,index,isOwn:false};
+  document.getElementById("mTitle").textContent="Beitrag eintragen";
+  document.getElementById("mSub").innerHTML=`${cat.emoji} ${cat.title} · Platz ${index+1}`;
+  document.getElementById("ownFields").style.display="none";
+  resetFields(); openOverlay();
+}
+function openOwn(){
+  current={cat:"eigen",index:Date.now(),isOwn:true};
+  document.getElementById("mTitle").textContent="Eigener Beitrag";
+  document.getElementById("mSub").textContent="Etwas, das in keine Kategorie passt.";
+  document.getElementById("ownFields").style.display="block";
+  resetFields(); openOverlay();
+}
+function resetFields(){document.getElementById("fName").value="";document.getElementById("fNote").value="";document.getElementById("fDish").value="";}
+function openOverlay(){document.getElementById("overlay").classList.add("open");setTimeout(()=>document.getElementById(current.isOwn?"fDish":"fName").focus(),60);}
+function closeModal(){document.getElementById("overlay").classList.remove("open");current=null;}
+
+/* ---------- Speichern ---------- */
+async function saveEntry(){
+  const name=document.getElementById("fName").value.trim();
+  const note=document.getElementById("fNote").value.trim();
+  const dish=document.getElementById("fDish").value.trim();
+  if(!name){toast("Bitte trage deinen Namen ein 🙂");return;}
+  if(current.isOwn && !dish){toast("Bitte gib an, was du mitbringst");return;}
+
+  const id=current.cat+"#"+current.index;
+  const rec={slot_id:id, category:current.cat, name, dish:current.isOwn?dish:"", note};
+  const btn=document.getElementById("saveBtn"); btn.disabled=true; btn.textContent="…";
+
+  if(sb){
+    const {error}=await sb.from("buffet").upsert(rec,{onConflict:"slot_id"});
+    if(error){toast("Fehler beim Speichern – bitte erneut versuchen");btn.disabled=false;btn.textContent="Eintragen";return;}
+  }
+  entries[id]={name,note,dish:current.isOwn?dish:""};
+  closeModal(); render(); toast("Eingetragen – vielen Dank! 🌿");
+  btn.disabled=false; btn.textContent="Eintragen";
+}
+
+async function freeSlot(id){
+  if(!confirm("Diesen Eintrag wirklich wieder freigeben?"))return;
+  if(sb){await sb.from("buffet").delete().eq("slot_id",id);}
+  delete entries[id]; render(); toast("Eintrag freigegeben");
+}
+
+/* ---------- Laden + Live-Sync ---------- */
+async function load(){
+  if(!sb){render();return;}
+  const {data,error}=await sb.from("buffet").select("*");
+  if(!error&&data){
+    entries={};
+    data.forEach(r=>{entries[r.slot_id]={name:r.name,note:r.note,dish:r.dish};});
+  }
+  render();
+  // Live-Aktualisierung wenn andere etwas eintragen
+  sb.channel("buffet-changes")
+    .on("postgres_changes",{event:"*",schema:"public",table:"buffet"},()=>load())
+    .subscribe();
+}
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
+
+document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+/* ---------- Passwort-Gate ---------- */
+function checkGate(){
+  const pw=document.getElementById("gatePw").value.trim();
+  if(pw===SITE_PASSWORD){
+    try{sessionStorage.setItem("buffetUnlocked","1");}catch(e){}
+    unlock();
+  }else{
+    const card=document.querySelector(".gate-card");
+    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+    document.getElementById("gateErr").textContent="Das Passwort stimmt leider nicht.";
+    document.getElementById("gatePw").select();
+  }
+}
+function unlock(){
+  document.getElementById("gate").classList.add("hidden");
+  load();
+}
+document.getElementById("gatePw").addEventListener("keydown",e=>{if(e.key==="Enter")checkGate();});
+
+// Bereits in dieser Sitzung freigeschaltet? Dann direkt rein.
+let alreadyIn=false;
+try{alreadyIn=sessionStorage.getItem("buffetUnlocked")==="1";}catch(e){}
+if(alreadyIn){unlock();}
+else{setTimeout(()=>document.getElementById("gatePw").focus(),100);}
+
+/* ---------- Tab-Wechsel ---------- */
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("panel-"+name).classList.add("active");
+  window.scrollTo({top:document.getElementById("tabs").offsetTop-20,behavior:"smooth"});
+}
+
+/* ---------- Foto-Upload / QR-Code ---------- */
+function initPhoto(){
+  const ok = PHOTO_UPLOAD_URL.startsWith("http");
+  if(!ok){
+    document.getElementById("photoWarn").style.display="block";
+    document.getElementById("photoLink").style.pointerEvents="none";
+    document.getElementById("photoLink").style.opacity=".5";
+    return;
+  }
+  document.getElementById("photoLink").href=PHOTO_UPLOAD_URL;
+  const box=document.getElementById("qrBox");
+  box.innerHTML="";
+  try{
+    new QRCode(box,{text:PHOTO_UPLOAD_URL,width:176,height:176,
+      colorDark:"#5a7741",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  }catch(e){
+    box.innerHTML='<div class="qr-placeholder">QR-Code konnte<br>nicht geladen werden</div>';
+  }
+}
+initPhoto();
+</script>
+</body>
+</html>
