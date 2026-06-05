@@ -425,7 +425,7 @@
       <div class="info-card">
         <div class="info-ico">🕒</div>
         <h3>Ablauf</h3>
-        <p>Wir starten um <strong>15:30 Uhr</strong> – kommt gern nach und nach vorbei, ganz entspannt. Nachmittags Kaffee &amp; Kuchen, später Herzhaftes vom Buffet. Gefeiert wird bis <strong>open end</strong>.</p>
+        <p>Wir starten um <strong>15:30 Uhr</strong> – kommt gerne, wann es euch passt, vorbei. Nachmittags gibt es Kaffee und Kuchen, später ein herzhaftes Buffet. Gefeiert wird bis <strong>open end</strong>.</p>
       </div>
 
       <div class="info-card">
@@ -453,9 +453,9 @@
       </div>
 
       <div class="info-card">
-        <div class="info-ico">📞</div>
-        <h3>Kontakt</h3>
-        <p>Ihr findet uns nicht oder verspätet euch? Meldet euch kurz bei <strong>Jan</strong> oder <strong>Madita</strong>. Wir freuen uns auf euch!</p>
+        <div class="info-ico">🎁</div>
+        <h3>Geschenke</h3>
+        <p>Das schönste Geschenk ist, dass ihr da seid! Statt eines Präsents freuen wir uns über einen <strong>Beitrag zum Buffet</strong> – tragt euch dafür einfach im Reiter „Buffet" ein. 🌿</p>
       </div>
     </div>
   </section>
@@ -542,8 +542,8 @@
     </div>
     <label>Dein Name</label>
     <input id="fName" type="text" placeholder="Vor- und Nachname" maxlength="50">
-    <label>Notiz <span class="opt">(optional)</span></label>
-    <input id="fNote" type="text" placeholder="z. B. vegetarisch · für ca. 12 Personen" maxlength="80">
+    <label id="noteLabel">Was bringst du mit?</label>
+    <input id="fNote" type="text" placeholder="z. B. Kartoffelsalat · für ca. 12 Personen" maxlength="80">
     <div class="modal-actions">
       <button class="cancel" onclick="closeModal()">Abbrechen</button>
       <button class="save" id="saveBtn" onclick="saveEntry()">Eintragen</button>
@@ -567,7 +567,7 @@ const PHOTO_UPLOAD_URL = "https://nextcloud.wiese-tech.com/s/JcqEi6j95fGrHn5"; /
 const CATEGORIES = [
   { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  hint:"Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
   { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  hint:"Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
-  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  hint:"Dips, Antipasti, gefüllte Eier, Wraps." },
+  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  hint:"Dips, Antipasti, Tomate-Mozzarella, Wraps." },
   { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  hint:"Beilage zu den Salaten." },
   { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  hint:"Tiramisu, Obstsalat, Muffins & Co." },
 ];
@@ -665,6 +665,7 @@ function openSlot(catKey,index){
   document.getElementById("mTitle").textContent="Beitrag eintragen";
   document.getElementById("mSub").innerHTML=`${cat.emoji} ${cat.title} · Platz ${index+1}`;
   document.getElementById("ownFields").style.display="none";
+  document.getElementById("noteLabel").textContent="Was bringst du mit?";
   resetFields(); openOverlay();
 }
 function openOwn(){
@@ -672,6 +673,7 @@ function openOwn(){
   document.getElementById("mTitle").textContent="Eigener Beitrag";
   document.getElementById("mSub").textContent="Etwas, das in keine Kategorie passt.";
   document.getElementById("ownFields").style.display="block";
+  document.getElementById("noteLabel").textContent="Notiz";
   resetFields(); openOverlay();
 }
 function resetFields(){document.getElementById("fName").value="";document.getElementById("fNote").value="";document.getElementById("fDish").value="";}
@@ -685,6 +687,7 @@ async function saveEntry(){
   const dish=document.getElementById("fDish").value.trim();
   if(!name){toast("Bitte trage deinen Namen ein 🙂");return;}
   if(current.isOwn && !dish){toast("Bitte gib an, was du mitbringst");return;}
+  if(!note){toast("Bitte trage ein, was du mitbringst");return;}
 
   const id=current.cat+"#"+current.index;
   const rec={slot_id:id, category:current.cat, name, dish:current.isOwn?dish:"", note};
