@@ -378,7 +378,7 @@
     </div>
 
     <div class="hero">
-      <div class="eyebrow">Buffet</div>
+      <div class="eyebrow" id="heroEyebrow" style="display:none">Buffet</div>
       <div class="rule"></div>
       <div class="names">Madita &amp; Jan</div>
       <div class="rule-wide"></div>
@@ -431,7 +431,7 @@
       <div class="info-card">
         <div class="info-ico">🚗</div>
         <h3>Parken</h3>
-        <p>Die Parkmöglichkeiten direkt am Haus sind <strong>begrenzt</strong>. Bitte bildet wenn möglich Fahrgemeinschaften. Entlang der Straße kann geparkt werden – bitte achtet auf freie Einfahrten und die Durchfahrt für andere.</p>
+        <p>Die Parkmöglichkeiten direkt am Haus sind <strong>begrenzt</strong>. Bitte bildet wenn möglich Fahrgemeinschaften. Entlang der Straße kann geparkt werden – bitte achtet auf freie Einfahrten und die Durchfahrt für andere. Ein kleiner Parkplatz befindet sich außerdem <a href="https://www.google.com/maps?q=53.787589,9.673649" target="_blank" rel="noopener" style="color:var(--gold-deep);font-weight:600">hier auf der Karte</a>.</p>
       </div>
 
       <div class="info-card">
@@ -759,6 +759,7 @@ function switchTab(name){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.getElementById("panel-"+name).classList.add("active");
+  document.getElementById("heroEyebrow").style.display = name==="buffet" ? "flex" : "none";
   window.scrollTo({top:document.getElementById("tabs").offsetTop-20,behavior:"smooth"});
 }
 
