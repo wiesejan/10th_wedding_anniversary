@@ -457,6 +457,12 @@
         <h3>Geschenke</h3>
         <p>Das schönste Geschenk ist, dass ihr da seid! Statt eines Präsents freuen wir uns über einen <strong>Beitrag zum Buffet</strong> – tragt euch dafür einfach im Reiter „Buffet" ein. 🌿</p>
       </div>
+
+      <div class="info-card">
+        <div class="info-ico">🛏️</div>
+        <h3>Schlafen für die Kleinen</h3>
+        <p>Wer für seine Babys oder Kleinkinder einen <strong>Schlafplatz</strong> oder eine Schlafmöglichkeit benötigt, meldet sich bitte <strong>im Voraus</strong> bei uns – dann finden wir gemeinsam eine Lösung.</p>
+      </div>
     </div>
   </section>
 
@@ -565,11 +571,11 @@ const PHOTO_UPLOAD_URL = "https://nextcloud.wiese-tech.com/s/JcqEi6j95fGrHn5"; /
 
 /* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
 const CATEGORIES = [
-  { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  hint:"Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
-  { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  hint:"Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
-  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  hint:"Dips, Antipasti, Tomate-Mozzarella, Wraps." },
-  { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  hint:"Beilage zu den Salaten." },
-  { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  hint:"Tiramisu, Obstsalat, Muffins & Co." },
+  { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  example:"Kartoffelsalat", hint:"z. B. Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
+  { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  example:"Auflauf", hint:"z. B. Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
+  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  example:"Antipasti", hint:"z. B. Dips, Antipasti, Tomate-Mozzarella, Wraps." },
+  { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  example:"Baguette", hint:"Beilage zu den Salaten – z. B. Baguette, Bauernbrot, Focaccia." },
+  { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
 ];
 
 let sb = null;
@@ -666,6 +672,7 @@ function openSlot(catKey,index){
   document.getElementById("mSub").innerHTML=`${cat.emoji} ${cat.title} · Platz ${index+1}`;
   document.getElementById("ownFields").style.display="none";
   document.getElementById("noteLabel").textContent="Was bringst du mit?";
+  document.getElementById("fNote").placeholder="z. B. "+cat.example+" · für ca. 12 Personen";
   resetFields(); openOverlay();
 }
 function openOwn(){
@@ -674,6 +681,7 @@ function openOwn(){
   document.getElementById("mSub").textContent="Etwas, das in keine Kategorie passt.";
   document.getElementById("ownFields").style.display="block";
   document.getElementById("noteLabel").textContent="Notiz";
+  document.getElementById("fNote").placeholder="z. B. vegetarisch · für ca. 12 Personen";
   resetFields(); openOverlay();
 }
 function resetFields(){document.getElementById("fName").value="";document.getElementById("fNote").value="";document.getElementById("fDish").value="";}
