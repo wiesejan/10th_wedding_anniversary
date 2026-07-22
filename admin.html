@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Buffet · Admin</title>
+<style>
+  :root{--green-deep:#5a7741;--green:#7a9a5e;--green-line:#cdddb8;--ink:#3b4230;--ink-soft:#7a8570;--paper:#fffdf8;--gold:#b08d3e}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Mulish,sans-serif;background:#f6f4ee;color:var(--ink);padding:24px 16px}
+  h1{font-size:20px;color:var(--green-deep);margin:0 0 18px}
+  .card{max-width:520px;margin:60px auto;background:var(--paper);border:1px solid var(--green-line);border-radius:16px;padding:26px;text-align:center}
+  .card input{width:100%;padding:11px 13px;border:1px solid var(--green-line);border-radius:10px;font-size:15px;margin:14px 0}
+  .card button{background:var(--green-deep);color:#fff;border:none;border-radius:99px;padding:10px 22px;font-weight:600;cursor:pointer;font-size:14.5px}
+  .err{color:#b04141;font-size:13px;min-height:18px;margin-top:6px}
+  table{width:100%;max-width:900px;margin:0 auto;border-collapse:collapse;background:var(--paper);border:1px solid var(--green-line);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--green-line);font-size:14px}
+  th{background:var(--green-deep);color:#fff;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .cat-row td{background:#eef4e6;font-weight:700;color:var(--green-deep)}
+  .hidden{display:none}
+  .meta{max-width:900px;margin:0 auto 14px;color:var(--ink-soft);font-size:13px}
+  .refresh{display:block;margin:16px auto 0;background:none;border:1px solid var(--green-line);border-radius:99px;padding:8px 18px;cursor:pointer;color:var(--green-deep);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="card" id="gate">
+  <h1>Buffet · Admin-Ansicht</h1>
+  <p style="color:var(--ink-soft);font-size:13.5px">Nur für Madita &amp; Jan – zeigt alle Einträge inkl. Namen.</p>
+  <label for="pw" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Admin-Passwort</label>
+  <input id="pw" type="password" placeholder="Admin-Passwort" autocomplete="off">
+  <button onclick="load()">Anzeigen</button>
+  <div class="err" id="err"></div>
+</div>
+
+<div id="app" class="hidden">
+  <h1 style="text-align:center">Buffet · alle Einträge</h1>
+  <div class="meta" id="meta"></div>
+  <table>
+    <thead><tr><th>Kategorie</th><th>Platz</th><th>Name</th><th>Gericht</th><th>Notiz</th><th>Eingetragen</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <button class="refresh" onclick="load()">Aktualisieren</button>
+</div>
+
+<script>
+const API_URL = "https://rpuqhbdxekgvjxyiabnl.supabase.co/functions/v1/buffet-api";
+const CATEGORY_TITLES = {
+  salate:"Große Salate", haupt:"Herzhafte Hauptgerichte", finger:"Fingerfood & Vorspeisen",
+  brot:"Brot & Baguette", dessert:"Desserts", eigen:"Weitere Beiträge"
+};
+let adminPassword=null;
+
+function esc(s){return (s||"").replace(/[&<>"'`]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","`":"&#96;"}[c]));}
+
+async function load(){
+  const pwField=document.getElementById("pw");
+  const pw = adminPassword ?? pwField.value.trim();
+  const errBox=document.getElementById("err");
+  errBox.textContent="";
+  try{
+    const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"admin_list", admin_password:pw
+    })});
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data){
+      errBox.textContent = res.status===401 ? "Passwort ist falsch." : "Fehler beim Laden.";
+      return;
+    }
+    adminPassword=pw;
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    render(data.entries||[]);
+  }catch(e){
+    errBox.textContent="Verbindung fehlgeschlagen – bitte erneut versuchen.";
+  }
+}
+
+function render(entries){
+  document.getElementById("meta").textContent = entries.length + " Einträge · Stand " + new Date().toLocaleTimeString("de-DE");
+  const rows=document.getElementById("rows");
+  rows.innerHTML="";
+  const byCat={};
+  entries.forEach(e=>{ (byCat[e.category||"eigen"] ??= []).push(e); });
+  Object.keys(byCat).sort().forEach(cat=>{
+    const catRow=document.createElement("tr");
+    catRow.className="cat-row";
+    catRow.innerHTML=`<td colspan="6">${esc(CATEGORY_TITLES[cat]||cat)}</td>`;
+    rows.appendChild(catRow);
+    byCat[cat].forEach(e=>{
+      const tr=document.createElement("tr");
+      const when = e.created_at ? new Date(e.created_at).toLocaleString("de-DE") : "";
+      tr.innerHTML = `<td>${esc(cat)}</td><td>${esc(e.slot_id)}</td><td>${esc(e.name)}</td><td>${esc(e.dish)}</td><td>${esc(e.note)}</td><td>${esc(when)}</td>`;
+      rows.appendChild(tr);
+    });
+  });
+}
+
+document.getElementById("pw").addEventListener("keydown",e=>{if(e.key==="Enter")load();});
+</script>
+</body>
+</html>
