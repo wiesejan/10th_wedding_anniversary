@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Mulish:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
   :root{
     --green-deep:#5a7741;
@@ -270,10 +271,19 @@
     background:var(--paper);border:1px solid var(--green-line);border-radius:22px;
     padding:30px;margin-top:26px;box-shadow:0 12px 30px var(--shadow);
   }
-  .upload-card{text-align:center}
-  .upload-emoji{font-size:38px;line-height:1;margin-bottom:8px}
-  .upload-card h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green-deep);font-weight:600;margin-bottom:8px}
-  .upload-lead{color:var(--ink-soft);font-size:15px;max-width:440px;margin:0 auto 18px}
+  .upload-cols{
+    display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center;
+  }
+  .qr-box{
+    flex:none;width:180px;height:180px;background:#fff;border-radius:18px;
+    border:1px solid var(--green-line);display:flex;align-items:center;justify-content:center;
+    padding:12px;
+  }
+  .qr-box img,.qr-box canvas{width:100%;height:100%;border-radius:8px}
+  .qr-placeholder{color:var(--ink-soft);font-size:13px;text-align:center;line-height:1.5}
+  .upload-info{flex:1;min-width:240px;text-align:center}
+  .upload-info h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green-deep);font-weight:600;margin-bottom:8px}
+  .upload-lead{color:var(--ink-soft);font-size:15px;max-width:400px;margin:0 auto 18px}
   .photo-btn{
     display:inline-block;background:var(--gold);color:#fff;text-decoration:none;border:none;cursor:pointer;
     border-radius:99px;padding:12px 24px;font-weight:600;font-size:15px;font-family:'Mulish',sans-serif;
@@ -343,6 +353,12 @@
     position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
     color:#fff;font-size:13.5px;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:99px;
   }
+  .lb-download{
+    position:absolute;top:18px;left:18px;color:#fff;text-decoration:none;
+    font-size:13px;background:rgba(255,255,255,.14);padding:8px 14px;border-radius:99px;
+    transition:background .15s;
+  }
+  .lb-download:hover{background:rgba(255,255,255,.28)}
   @media(max-width:520px){
     .lb-btn{width:42px;height:42px;font-size:21px}
     .lb-prev{left:6px}.lb-next{right:6px}
@@ -565,13 +581,22 @@
     </div>
 
     <div class="photo-card upload-card">
-      <div class="upload-emoji">📸</div>
-      <h3>Fotos beitragen</h3>
-      <p class="upload-lead">Wähle Fotos aus deiner Galerie – sie erscheinen gleich unten im gemeinsamen Album.</p>
-      <input id="photoInput" type="file" accept="image/*" multiple hidden>
-      <button class="photo-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">📤 Fotos auswählen</button>
-      <div class="upload-progress" id="uploadProgress" style="display:none"></div>
-      <p class="photo-hint">Alle hochgeladenen Fotos sind für alle Gäste hier im Album sichtbar. 🌿</p>
+      <div class="upload-cols">
+        <div class="qr-box" id="qrBox">
+          <div class="qr-placeholder">QR-Code<br>erscheint hier</div>
+        </div>
+        <div class="upload-info">
+          <h3>Fotos beitragen</h3>
+          <p class="upload-lead">Direkt hier auswählen – oder mit dem Handy den QR-Code scannen, um von unterwegs hochzuladen.</p>
+          <input id="photoInput" type="file" accept="image/*" multiple hidden>
+          <button class="photo-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">📤 Fotos auswählen</button>
+          <div class="upload-progress" id="uploadProgress" style="display:none"></div>
+          <p class="photo-hint">Alle hochgeladenen Fotos sind für alle Gäste hier im Album sichtbar. 🌿</p>
+        </div>
+      </div>
+      <div class="config-warn" id="qrWarn" style="display:none">
+        ⚙️ QR-Code noch nicht eingerichtet – bitte SITE_URL im Code eintragen (siehe Konfigurationsblock oben im Script).
+      </div>
     </div>
 
     <!-- FOTO-ALBUM -->
@@ -618,6 +643,7 @@
   <button class="lb-btn lb-prev" aria-label="Vorheriges Foto" onclick="lightboxStep(-1)">‹</button>
   <img id="lbImg" src="" alt="Foto in Vollbild">
   <button class="lb-btn lb-next" aria-label="Nächstes Foto" onclick="lightboxStep(1)">›</button>
+  <a id="lbDownload" class="lb-download" href="#" target="_blank" rel="noopener" download>⬇ Original</a>
   <div class="lb-count" id="lbCount"></div>
 </div>
 
@@ -630,6 +656,10 @@
    ========================================================= */
 const API_URL = "https://rpuqhbdxekgvjxyiabnl.supabase.co/functions/v1/buffet-api";
 /* ========================================================= */
+
+// QR-Code zeigt immer auf die aktuell aufgerufene URL (egal wo gehostet) +
+// Sprung direkt in den Fotos-Reiter, damit Scannen dort direkt landet.
+const SITE_URL = location.origin + location.pathname;
 
 /* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
 const CATEGORIES = [
@@ -898,6 +928,7 @@ async function checkGate(){
       document.getElementById("gate").classList.add("hidden");
       applyListData(data);
       startPolling();
+      afterUnlock();
     }else{
       showGateError();
     }
@@ -907,6 +938,12 @@ async function checkGate(){
   btn.disabled=false; btn.textContent="Eintreten";
 }
 document.getElementById("gatePw").addEventListener("keydown",e=>{if(e.key==="Enter")checkGate();});
+
+// Läuft einmalig, sobald das Passwort-Gate passiert ist (egal auf welchem Weg).
+function afterUnlock(){
+  initQR();
+  if(location.hash==="#fotos") switchTab("fotos");
+}
 
 // Bereits in dieser Sitzung freigeschaltet? Dann direkt rein.
 let alreadyIn=false, storedPw=null;
@@ -919,6 +956,7 @@ if(alreadyIn && storedPw){
   document.getElementById("gate").classList.add("hidden");
   fetchList();
   startPolling();
+  afterUnlock();
 }else{
   setTimeout(()=>document.getElementById("gatePw").focus(),100);
 }
@@ -995,6 +1033,7 @@ function openLightbox(i){
   document.getElementById("lbImg").src=p.full;
   document.getElementById("lbImg").alt=p.name||("Foto "+(i+1));
   document.getElementById("lbCount").textContent=(i+1)+" / "+albumPhotos.length;
+  document.getElementById("lbDownload").href=p.download||p.full;
   document.getElementById("lightbox").classList.add("open");
   setTimeout(()=>document.getElementById("lbClose").focus(),40);
 }
@@ -1087,6 +1126,25 @@ async function uploadOne(blob, filename){
     return res.ok;
   }catch(e){
     return false;
+  }
+}
+
+/* ---------- QR-Code (Direktlink zum Foto-Upload) ---------- */
+function initQR(){
+  const ok = typeof SITE_URL==="string" && SITE_URL.startsWith("http");
+  if(!ok){
+    document.getElementById("qrWarn").style.display="block";
+    return;
+  }
+  document.getElementById("qrWarn").style.display="none";
+  const target = SITE_URL + "#fotos";
+  const box=document.getElementById("qrBox");
+  box.innerHTML="";
+  try{
+    new QRCode(box,{text:target,width:156,height:156,
+      colorDark:"#5a7741",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  }catch(e){
+    box.innerHTML='<div class="qr-placeholder">QR-Code konnte<br>nicht geladen werden</div>';
   }
 }
 </script>

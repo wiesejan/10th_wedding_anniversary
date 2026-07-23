@@ -62,7 +62,7 @@ const PROPFIND_BODY = `<?xml version="1.0" encoding="utf-8"?>
 
 const xmlParser = new XMLParser({ ignoreAttributes: true, removeNSPrefix: true });
 
-type Photo = { name: string; thumb: string; full: string; mtime: string };
+type Photo = { name: string; thumb: string; full: string; download: string; mtime: string };
 
 // Leichter Cache, damit paralleles Laden mehrerer Gäste Nextcloud nicht flutet.
 let photoCache: { at: number; data: Photo[] } | null = null;
@@ -134,10 +134,14 @@ async function listPhotos(): Promise<{ photos?: Photo[]; error?: string; status?
     if (!name) continue;
 
     const enc = encodeURIComponent(name);
+    const fileParam = encodeURIComponent("/" + name);
     photos.push({
       name,
-      thumb: `${base}/apps/files_sharing/publicpreview/${token}?file=${encodeURIComponent("/" + name)}&x=500&y=500&a=1`,
-      full: `${base}/s/${token}/download?path=%2F&files=${enc}`,
+      // Beide nutzen denselben (bereits als funktionierend bestätigten) Vorschau-Endpunkt,
+      // "full" nur in groß statt der unsicheren /s/token/download-URL-Rateform.
+      thumb: `${base}/apps/files_sharing/publicpreview/${token}?file=${fileParam}&x=500&y=500&a=1`,
+      full: `${base}/apps/files_sharing/publicpreview/${token}?file=${fileParam}&x=2048&y=2048&a=1`,
+      download: `${base}/s/${token}/download?path=%2F&files=${enc}`,
       mtime: (prop?.getlastmodified ?? "").toString(),
     });
   }
