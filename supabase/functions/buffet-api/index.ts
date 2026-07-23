@@ -52,6 +52,9 @@ function parseShareUrl(u: string): { base: string; token: string } | null {
   }
 }
 
+// Nextcloud-Share (Lesen + Schreiben) – für Auflisten UND Upload dieselbe Freigabe.
+const SHARE = parseShareUrl(PHOTO_ALBUM_URL || PHOTO_UPLOAD_URL);
+
 const PROPFIND_BODY = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:"><d:prop>
 <d:getlastmodified/><d:getcontenttype/><d:getcontentlength/><d:resourcetype/>
@@ -81,10 +84,8 @@ async function listPhotos(): Promise<{ photos?: Photo[]; error?: string; status?
   if (photoCache && Date.now() - photoCache.at < PHOTO_CACHE_MS) {
     return { photos: photoCache.data };
   }
-  const shareUrl = PHOTO_ALBUM_URL || PHOTO_UPLOAD_URL;
-  const parsed = parseShareUrl(shareUrl);
-  if (!parsed) return { error: "no_share_configured" };
-  const { base, token } = parsed;
+  if (!SHARE) return { error: "no_share_configured" };
+  const { base, token } = SHARE;
 
   // Primärer Endpoint + Fallback für ältere/neuere Nextcloud-Versionen.
   const endpoints = [
@@ -151,9 +152,86 @@ async function listPhotos(): Promise<{ photos?: Photo[]; error?: string; status?
   return { photos };
 }
 
+// Dateinamen entschärfen (keine Pfade/Steuerzeichen) + auf sinnvolle Länge kürzen.
+function sanitizeName(raw: string): string {
+  let n = raw.split(/[\\/]/).pop() ?? "foto";
+  n = n.replace(/[\x00-\x1F<>:"|?*]+/g, "").trim();
+  if (!n) n = "foto";
+  if (n.length > 90) {
+    const dot = n.lastIndexOf(".");
+    const ext = dot > 0 ? n.slice(dot) : "";
+    n = n.slice(0, 80) + ext;
+  }
+  return n;
+}
+
+// Lädt eine Datei per WebDAV-PUT in den öffentlichen Nextcloud-Share.
+async function putPhoto(name: string, bytes: Uint8Array, contentType: string): Promise<{ ok: boolean; status: number }> {
+  if (!SHARE) return { ok: false, status: 0 };
+  const { base, token } = SHARE;
+  const targets = [
+    `${base}/public.php/webdav/${encodeURIComponent(name)}`,
+    `${base}/public.php/dav/files/${token}/${encodeURIComponent(name)}`,
+  ];
+  let last = 0;
+  for (const url of targets) {
+    try {
+      const r = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: "Basic " + btoa(`${token}:${PHOTO_SHARE_PASSWORD}`),
+          "Content-Type": contentType || "application/octet-stream",
+        },
+        body: bytes,
+      });
+      if (r.ok || r.status === 201 || r.status === 204) return { ok: true, status: r.status };
+      last = r.status;
+    } catch (_e) {
+      // nächsten Endpoint versuchen
+    }
+  }
+  return { ok: false, status: last };
+}
+
+async function handleUpload(req: Request): Promise<Response> {
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return fail(400, "bad_form");
+  }
+  if (form.get("password") !== SITE_PASSWORD) return fail(401, "invalid_password");
+
+  const file = form.get("file");
+  if (!(file instanceof File)) return fail(400, "missing_file");
+
+  const type = file.type || "application/octet-stream";
+  if (!type.startsWith("image/")) return fail(415, "not_an_image");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes.byteLength === 0) return fail(400, "empty_file");
+  if (bytes.byteLength > 25 * 1024 * 1024) return fail(413, "too_large");
+
+  const rawName = (form.get("filename") ?? file.name ?? "foto.jpg").toString();
+  const prefix = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}_`;
+  const finalName = prefix + sanitizeName(rawName);
+
+  const result = await putPhoto(finalName, bytes, type);
+  if (!result.ok) return fail(502, "nextcloud_upload_failed", { status: result.status });
+
+  photoCache = null; // Cache verwerfen, damit das neue Foto sofort in der Liste auftaucht
+  return ok({ ok: true, name: finalName });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return fail(405, "method_not_allowed");
+
+  // Foto-Upload kommt als multipart/form-data (Datei-Bytes), nicht als JSON.
+  const contentType = req.headers.get("content-type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    return await handleUpload(req);
+  }
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body.action !== "string") return fail(400, "bad_json");
