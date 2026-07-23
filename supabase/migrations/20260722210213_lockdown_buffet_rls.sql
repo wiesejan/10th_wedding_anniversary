@@ -8,5 +8,3 @@ drop policy if exists "anon read" on public.buffet;
 drop policy if exists "anon insert" on public.buffet;
 drop policy if exists "anon update" on public.buffet;
 drop policy if exists "anon delete" on public.buffet;
-
-alter table public.buffet add column if not exists owner_token text;
