@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Mulish:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
   :root{
@@ -153,7 +152,6 @@
   .slot.taken .slot-name{color:var(--green-deep)}
   .slot-note{font-size:13px;color:var(--ink-soft)}
   .slot-by{font-size:12.5px;color:var(--green-deep);font-weight:600}
-  .slot-by .who{font-style:normal}
   .btn-take{
     margin-top:4px;align-self:flex-start;
     background:var(--gold);color:#fff;border:none;border-radius:99px;
@@ -167,7 +165,10 @@
     color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;
     padding:2px 0;
   }
-  .check{color:var(--green);font-size:15px}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
 
   /* ---------- EIGENER BEITRAG ---------- */
   .own{
@@ -331,14 +332,15 @@
 <body>
 <!-- PASSWORT-GATE -->
 <div class="gate" id="gate">
-  <div class="gate-card">
+  <div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
     <div class="gate-leaf">🌿</div>
     <div class="gate-eyebrow">Madita &amp; Jan</div>
-    <h1 class="gate-title">10. Hochzeitstag</h1>
+    <h1 class="gate-title" id="gateTitle">10. Hochzeitstag</h1>
     <p class="gate-sub">Bitte gib das Passwort aus eurer Einladung ein, um zum Buffet zu gelangen.</p>
+    <label for="gatePw" class="sr-only">Passwort</label>
     <input id="gatePw" type="password" placeholder="Passwort" autocomplete="off">
     <button id="gateBtn" onclick="checkGate()">Eintreten</button>
-    <div class="gate-err" id="gateErr"></div>
+    <div class="gate-err" id="gateErr" role="alert"></div>
   </div>
 </div>
 
@@ -473,9 +475,7 @@
       <p>Damit ein buntes, ausgewogenes Buffet entsteht, freuen wir uns, wenn ihr euch für einen Beitrag eintragt. Ihr seht hier live, was schon dabei ist und wo noch etwas fehlt. Alles freiwillig – über jede Köstlichkeit freuen wir uns! 🌿</p>
     </div>
 
-    <div id="configWarn" class="config-warn" style="display:none">
-      ⚙️ Die Seite ist noch nicht mit der Datenbank verbunden. Trage oben im Code deine Supabase-Daten ein, damit Einträge gespeichert werden.
-    </div>
+    <div id="configWarn" class="config-warn" role="alert" style="display:none"></div>
 
     <!-- FORTSCHRITT -->
     <div class="progress-card">
@@ -526,7 +526,7 @@
     </div>
 
     <div class="config-warn" id="photoWarn" style="display:none">
-      ⚙️ Foto-Upload noch nicht verbunden. Trage oben im Code unter <strong>PHOTO_UPLOAD_URL</strong> deinen Nextcloud File-Drop-Link ein, dann erscheinen QR-Code und Button automatisch.
+      ⚙️ Foto-Upload ist aktuell nicht eingerichtet.
     </div>
   </section>
 
@@ -538,17 +538,17 @@
 
 <!-- MODAL -->
 <div class="overlay" id="overlay">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <button class="x" onclick="closeModal()">×</button>
     <h3 id="mTitle">Beitrag eintragen</h3>
     <div class="sub" id="mSub"></div>
     <div id="ownFields" style="display:none">
-      <label>Was bringst du mit?</label>
+      <label for="fDish">Was bringst du mit?</label>
       <input id="fDish" type="text" placeholder="z. B. Griechischer Bauernsalat" maxlength="80">
     </div>
-    <label>Dein Name</label>
+    <label for="fName">Dein Name</label>
     <input id="fName" type="text" placeholder="Vor- und Nachname" maxlength="50">
-    <label id="noteLabel">Was bringst du mit?</label>
+    <label id="noteLabel" for="fNote">Was bringst du mit?</label>
     <input id="fNote" type="text" placeholder="z. B. Kartoffelsalat · für ca. 12 Personen" maxlength="80">
     <div class="modal-actions">
       <button class="cancel" onclick="closeModal()">Abbrechen</button>
@@ -561,12 +561,12 @@
 
 <script>
 /* =========================================================
-   1) SUPABASE-KONFIGURATION  – HIER DEINE WERTE EINTRAGEN
+   1) API-KONFIGURATION
+   Die Seite spricht nicht mehr direkt mit Supabase, sondern nur noch
+   mit dieser einen Edge Function. Sie prüft das Passwort serverseitig
+   und liefert Gästen nur anonymisierte Daten (keine Namen).
    ========================================================= */
-const SUPABASE_URL  = "https://rpuqhbdxekgvjxyiabnl.supabase.co";      // z.B. https://xxxx.supabase.co
-const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwdXFoYmR4ZWtndmp4eWlhYm5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTQ2NjgsImV4cCI6MjA5NjE3MDY2OH0.-SEPcQlDY68OoseXSARiimmAUagUdnP36Z-2LNjUjsw";  // der "anon public" Key
-const SITE_PASSWORD = "Hochzeitstag";            // Passwort für den Zugang zur Seite
-const PHOTO_UPLOAD_URL = "https://nextcloud.wiese-tech.com/s/JcqEi6j95fGrHn5"; // öffentlicher Nextcloud-Upload-Link (File Drop)
+const API_URL = "https://rpuqhbdxekgvjxyiabnl.supabase.co/functions/v1/buffet-api";
 /* ========================================================= */
 
 /* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
@@ -578,13 +578,32 @@ const CATEGORIES = [
   { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
 ];
 
-let sb = null;
-let entries = {};   // key: "cat#index" -> {name, dish, note}
+let entries = {};   // key: "cat#index" -> {dish, note, category}  (keine Namen – siehe API)
 let current = null; // {cat, index, isOwn}
+let sitePassword = null;
+let pollTimer = null;
+let photoInitialized = false;
 
-const configured = SUPABASE_URL.startsWith("http") && SUPABASE_KEY.length > 20;
-if(configured){ sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
-else { document.getElementById("configWarn").style.display="block"; }
+function ownerToken(){
+  let t=null;
+  try{ t = localStorage.getItem("ownerToken"); }catch(e){}
+  if(!t){
+    t = crypto.randomUUID();
+    try{ localStorage.setItem("ownerToken", t); }catch(e){}
+  }
+  return t;
+}
+function myEntries(){
+  try{ return JSON.parse(localStorage.getItem("myEntries")||"[]"); }catch(e){ return []; }
+}
+function rememberMine(id){
+  const m=myEntries();
+  if(!m.includes(id)){ m.push(id); try{ localStorage.setItem("myEntries", JSON.stringify(m)); }catch(e){} }
+}
+function forgetMine(id){
+  const m=myEntries().filter(x=>x!==id);
+  try{ localStorage.setItem("myEntries", JSON.stringify(m)); }catch(e){}
+}
 
 /* ---------- Rendern ---------- */
 function render(){
@@ -621,12 +640,13 @@ function render(){
     const cards=ownIds.map(id=>{
       const e=entries[id];
       filled++; total++;
+      const mine=myEntries().includes(id);
       return `<div class="slot taken">
         <div class="slot-top"><span class="slot-idx">✓</span>
           <span class="slot-name">${esc(e.dish)}</span></div>
         ${e.note?`<div class="slot-note">${esc(e.note)}</div>`:""}
-        <div class="slot-by">von <span class="who">${esc(e.name)}</span></div>
-        <button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>
+        <div class="slot-by">✓ vergeben</div>
+        ${mine?`<button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>`:""}
       </div>`;
     });
     sec.innerHTML =
@@ -648,12 +668,13 @@ function render(){
 function slotMarkup(cat,i,e){
   const id=cat.key+"#"+i;
   if(e){
+    const mine=myEntries().includes(id);
     return `<div class="slot taken">
       <div class="slot-top"><span class="slot-idx">✓</span>
         <span class="slot-name">${esc(e.dish||cat.title+" "+(i+1))}</span></div>
       ${e.note?`<div class="slot-note">${esc(e.note)}</div>`:""}
-      <div class="slot-by">von <span class="who">${esc(e.name)}</span></div>
-      <button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>
+      <div class="slot-by">✓ vergeben</div>
+      ${mine?`<button class="btn-free" onclick="freeSlot('${id}')">Eintrag wieder freigeben</button>`:""}
     </div>`;
   }
   return `<div class="slot">
@@ -662,7 +683,7 @@ function slotMarkup(cat,i,e){
     <button class="btn-take" onclick="openSlot('${cat.key}',${i})">Übernehmen</button>
   </div>`;
 }
-function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function esc(s){return (s||"").replace(/[&<>"'`]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","`":"&#96;"}[c]));}
 
 /* ---------- Modal ---------- */
 function openSlot(catKey,index){
@@ -698,68 +719,139 @@ async function saveEntry(){
   if(!note){toast("Bitte trage ein, was du mitbringst");return;}
 
   const id=current.cat+"#"+current.index;
-  const rec={slot_id:id, category:current.cat, name, dish:current.isOwn?dish:"", note};
   const btn=document.getElementById("saveBtn"); btn.disabled=true; btn.textContent="…";
 
-  if(sb){
-    const {error}=await sb.from("buffet").upsert(rec,{onConflict:"slot_id"});
-    if(error){toast("Fehler beim Speichern – bitte erneut versuchen");btn.disabled=false;btn.textContent="Eintragen";return;}
+  let res;
+  try{
+    res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"claim", password:sitePassword, slot_id:id, category:current.cat,
+      name, dish:current.isOwn?dish:"", note, owner_token:ownerToken()
+    })});
+  }catch(e){
+    toast("Verbindung fehlgeschlagen – bitte erneut versuchen");
+    btn.disabled=false; btn.textContent="Eintragen"; return;
   }
-  entries[id]={name,note,dish:current.isOwn?dish:""};
+  if(!res.ok){
+    if(res.status===409){
+      toast("Dieser Platz wurde gerade von jemand anderem belegt 😅 – bitte wähle einen anderen.");
+      closeModal(); await fetchList();
+    }else{
+      toast("Fehler beim Speichern – bitte erneut versuchen");
+    }
+    btn.disabled=false; btn.textContent="Eintragen";
+    return;
+  }
+  entries[id]={note,dish:current.isOwn?dish:"",category:current.cat};
+  rememberMine(id);
   closeModal(); render(); toast("Eingetragen – vielen Dank! 🌿");
   btn.disabled=false; btn.textContent="Eintragen";
 }
 
 async function freeSlot(id){
   if(!confirm("Diesen Eintrag wirklich wieder freigeben?"))return;
-  if(sb){await sb.from("buffet").delete().eq("slot_id",id);}
-  delete entries[id]; render(); toast("Eintrag freigegeben");
+  try{
+    const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"free", password:sitePassword, slot_id:id, owner_token:ownerToken()
+    })});
+    if(!res.ok){toast("Fehler – bitte erneut versuchen");return;}
+  }catch(e){
+    toast("Verbindung fehlgeschlagen – bitte erneut versuchen"); return;
+  }
+  delete entries[id]; forgetMine(id); render(); toast("Eintrag freigegeben");
 }
 
-/* ---------- Laden + Live-Sync ---------- */
-async function load(){
-  if(!sb){render();return;}
-  const {data,error}=await sb.from("buffet").select("*");
-  if(!error&&data){
-    entries={};
-    data.forEach(r=>{entries[r.slot_id]={name:r.name,note:r.note,dish:r.dish};});
-  }
+/* ---------- Laden + Anzeigen ---------- */
+function applyListData(data){
+  entries={};
+  (data.entries||[]).forEach(r=>{entries[r.slot_id]={note:r.note,dish:r.dish,category:r.category};});
   render();
-  // Live-Aktualisierung wenn andere etwas eintragen
-  sb.channel("buffet-changes")
-    .on("postgres_changes",{event:"*",schema:"public",table:"buffet"},()=>load())
-    .subscribe();
+  document.getElementById("configWarn").style.display="none";
+  if(!photoInitialized){ initPhoto(data.photo_upload_url); photoInitialized=true; }
+}
+
+async function fetchList(){
+  try{
+    const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"list", password:sitePassword
+    })});
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data){
+      document.getElementById("configWarn").textContent="⚠️ Fehler beim Laden – bitte Seite neu laden.";
+      document.getElementById("configWarn").style.display="block";
+      return;
+    }
+    applyListData(data);
+  }catch(e){
+    document.getElementById("configWarn").textContent="⚠️ Verbindung fehlgeschlagen – bitte Internetverbindung prüfen.";
+    document.getElementById("configWarn").style.display="block";
+  }
+}
+
+function startPolling(){
+  if(pollTimer) return;
+  pollTimer = setInterval(fetchList, 15000);
 }
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
 
 document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){closeModal();return;}
+  if(e.key==="Tab" && document.getElementById("overlay").classList.contains("open")){
+    const focusables=Array.from(document.querySelectorAll("#overlay .modal button, #overlay .modal input"))
+      .filter(el=>!el.disabled && el.offsetParent!==null);
+    if(!focusables.length)return;
+    const first=focusables[0], last=focusables[focusables.length-1];
+    if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
 
 /* ---------- Passwort-Gate ---------- */
-function checkGate(){
-  const pw=document.getElementById("gatePw").value.trim();
-  if(pw===SITE_PASSWORD){
-    try{sessionStorage.setItem("buffetUnlocked","1");}catch(e){}
-    unlock();
-  }else{
-    const card=document.querySelector(".gate-card");
-    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
-    document.getElementById("gateErr").textContent="Das Passwort stimmt leider nicht.";
-    document.getElementById("gatePw").select();
-  }
+function showGateError(msg){
+  const card=document.querySelector(".gate-card");
+  card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+  document.getElementById("gateErr").textContent=msg||"Das Passwort stimmt leider nicht.";
+  document.getElementById("gatePw").select();
 }
-function unlock(){
-  document.getElementById("gate").classList.add("hidden");
-  load();
+async function checkGate(){
+  const pw=document.getElementById("gatePw").value.trim();
+  const btn=document.getElementById("gateBtn"); btn.disabled=true; btn.textContent="…";
+  try{
+    const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"list", password:pw
+    })});
+    const data = await res.json().catch(()=>null);
+    if(res.ok && data){
+      sitePassword=pw;
+      try{sessionStorage.setItem("buffetUnlocked","1");sessionStorage.setItem("sitePassword",pw);}catch(e){}
+      document.getElementById("gate").classList.add("hidden");
+      applyListData(data);
+      startPolling();
+    }else{
+      showGateError();
+    }
+  }catch(e){
+    showGateError("Verbindung fehlgeschlagen – bitte erneut versuchen.");
+  }
+  btn.disabled=false; btn.textContent="Eintreten";
 }
 document.getElementById("gatePw").addEventListener("keydown",e=>{if(e.key==="Enter")checkGate();});
 
 // Bereits in dieser Sitzung freigeschaltet? Dann direkt rein.
-let alreadyIn=false;
-try{alreadyIn=sessionStorage.getItem("buffetUnlocked")==="1";}catch(e){}
-if(alreadyIn){unlock();}
-else{setTimeout(()=>document.getElementById("gatePw").focus(),100);}
+let alreadyIn=false, storedPw=null;
+try{
+  alreadyIn=sessionStorage.getItem("buffetUnlocked")==="1";
+  storedPw=sessionStorage.getItem("sitePassword");
+}catch(e){}
+if(alreadyIn && storedPw){
+  sitePassword=storedPw;
+  document.getElementById("gate").classList.add("hidden");
+  fetchList();
+  startPolling();
+}else{
+  setTimeout(()=>document.getElementById("gatePw").focus(),100);
+}
 
 /* ---------- Tab-Wechsel ---------- */
 function switchTab(name){
@@ -771,25 +863,27 @@ function switchTab(name){
 }
 
 /* ---------- Foto-Upload / QR-Code ---------- */
-function initPhoto(){
-  const ok = PHOTO_UPLOAD_URL.startsWith("http");
+function initPhoto(url){
+  const ok = typeof url==="string" && url.startsWith("http");
   if(!ok){
     document.getElementById("photoWarn").style.display="block";
     document.getElementById("photoLink").style.pointerEvents="none";
     document.getElementById("photoLink").style.opacity=".5";
     return;
   }
-  document.getElementById("photoLink").href=PHOTO_UPLOAD_URL;
+  document.getElementById("photoWarn").style.display="none";
+  document.getElementById("photoLink").href=url;
+  document.getElementById("photoLink").style.pointerEvents="";
+  document.getElementById("photoLink").style.opacity="";
   const box=document.getElementById("qrBox");
   box.innerHTML="";
   try{
-    new QRCode(box,{text:PHOTO_UPLOAD_URL,width:176,height:176,
+    new QRCode(box,{text:url,width:176,height:176,
       colorDark:"#5a7741",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
   }catch(e){
     box.innerHTML='<div class="qr-placeholder">QR-Code konnte<br>nicht geladen werden</div>';
   }
 }
-initPhoto();
 </script>
 </body>
 </html>
