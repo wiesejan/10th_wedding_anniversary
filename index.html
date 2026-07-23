@@ -121,6 +121,17 @@
   .bar{flex:1;min-width:160px;height:9px;background:#fff;border-radius:99px;overflow:hidden;border:1px solid var(--green-line)}
   .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green-soft),var(--green));transition:width .6s ease}
 
+  /* ---------- BUFFET-GRUPPEN ---------- */
+  .group-head{
+    display:flex;align-items:baseline;gap:14px;
+    margin:40px 4px 6px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--green-deep);
+  }
+  .group-head:first-child{margin-top:26px}
+  .group-emoji{font-size:32px;line-height:1}
+  .group-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--green-deep);font-weight:600}
+
   /* ---------- KATEGORIEN ---------- */
   .cat{margin-top:34px}
   .cat-head{
@@ -661,13 +672,19 @@ const API_URL = "https://rpuqhbdxekgvjxyiabnl.supabase.co/functions/v1/buffet-ap
 // Sprung direkt in den Fotos-Reiter, damit Scannen dort direkt landet.
 const SITE_URL = location.origin + location.pathname;
 
-/* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
+/* Buffet-Struktur: Gruppen + Kategorien + Anzahl Slots (aus der Mengenberechnung) */
+const GROUPS = [
+  { key:"kuchenbuffet", emoji:"🎂", title:"Kuchenbuffet" },
+  { key:"abendbuffet",  emoji:"🍽️", title:"Abendbuffet" },
+];
+
 const CATEGORIES = [
-  { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  example:"Kartoffelsalat", hint:"z. B. Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
-  { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  example:"Auflauf", hint:"z. B. Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
-  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  example:"Antipasti", hint:"z. B. Dips, Antipasti, Tomate-Mozzarella, Wraps." },
-  { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  example:"Baguette", hint:"Beilage zu den Salaten – z. B. Baguette, Bauernbrot, Focaccia." },
-  { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
+  { key:"kuchen",   group:"kuchenbuffet", emoji:"🎂", title:"Kuchen & Torten",         slots:10, example:"Marmorkuchen", hint:"z. B. Kuchen, Torten, Cupcakes oder anderes Gebäck – vom Blechkuchen bis zur Sahnetorte, ganz wie ihr mögt." },
+  { key:"salate",   group:"abendbuffet",  emoji:"🥗", title:"Große Salate",            slots:8,  example:"Kartoffelsalat", hint:"z. B. Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
+  { key:"haupt",    group:"abendbuffet",  emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  example:"Auflauf", hint:"z. B. Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
+  { key:"finger",   group:"abendbuffet",  emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  example:"Antipasti", hint:"z. B. Dips, Antipasti, Tomate-Mozzarella, Wraps." },
+  { key:"brot",     group:"abendbuffet",  emoji:"🥖", title:"Brot & Baguette",         slots:4,  example:"Baguette", hint:"Beilage zu den Salaten – z. B. Baguette, Bauernbrot, Focaccia." },
+  { key:"dessert",  group:"abendbuffet",  emoji:"🍮", title:"Desserts",                slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
 ];
 
 let entries = {};   // key: "cat#index" -> {dish, note, category}  (keine Namen – siehe API)
@@ -704,8 +721,18 @@ function render(){
   const root = document.getElementById("categories");
   root.innerHTML = "";
   let total=0, filled=0;
+  let lastGroup=null;
 
   CATEGORIES.forEach(cat=>{
+    if(cat.group!==lastGroup){
+      lastGroup=cat.group;
+      const g=GROUPS.find(x=>x.key===cat.group);
+      const gh=document.createElement("div");
+      gh.className="group-head";
+      gh.innerHTML=`<span class="group-emoji">${g.emoji}</span><span class="group-title">${g.title}</span>`;
+      root.appendChild(gh);
+    }
+
     let catFilled=0;
     const sec=document.createElement("div"); sec.className="cat";
     const slotsHtml=[];
