@@ -967,7 +967,7 @@ async function fetchPhotos(){
     })});
     const data = await res.json().catch(()=>null);
     if(!res.ok || !data || !Array.isArray(data.photos)){
-      state.textContent="⚠️ Das Album konnte gerade nicht geladen werden. Bitte später erneut „Aktualisieren".";
+      state.textContent="⚠️ Das Album konnte gerade nicht geladen werden. Bitte später erneut auf „Aktualisieren“ klicken.";
       state.style.display="block";
       btn.disabled=false;
       return;
