@@ -121,6 +121,17 @@
   .bar{flex:1;min-width:160px;height:9px;background:#fff;border-radius:99px;overflow:hidden;border:1px solid var(--green-line)}
   .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green-soft),var(--green));transition:width .6s ease}
 
+  /* ---------- BUFFET-GRUPPEN ---------- */
+  .group-head{
+    display:flex;align-items:baseline;gap:14px;
+    margin:40px 4px 6px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--green-deep);
+  }
+  .group-head:first-child{margin-top:26px}
+  .group-emoji{font-size:32px;line-height:1}
+  .group-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--green-deep);font-weight:600}
+
   /* ---------- KATEGORIEN ---------- */
   .cat{margin-top:34px}
   .cat-head{
@@ -268,29 +279,101 @@
 
   /* ---------- FOTO-BEREICH ---------- */
   .photo-card{
-    display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center;
     background:var(--paper);border:1px solid var(--green-line);border-radius:22px;
     padding:30px;margin-top:26px;box-shadow:0 12px 30px var(--shadow);
   }
+  .upload-cols{
+    display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center;
+  }
   .qr-box{
-    flex:none;width:200px;height:200px;background:#fff;border-radius:18px;
+    flex:none;width:180px;height:180px;background:#fff;border-radius:18px;
     border:1px solid var(--green-line);display:flex;align-items:center;justify-content:center;
     padding:12px;
   }
   .qr-box img,.qr-box canvas{width:100%;height:100%;border-radius:8px}
   .qr-placeholder{color:var(--ink-soft);font-size:13px;text-align:center;line-height:1.5}
-  .photo-text{flex:1;min-width:240px}
-  .photo-text h3{font-family:'Cormorant Garamond',serif;font-size:25px;color:var(--green-deep);font-weight:600;margin-bottom:12px}
-  .photo-text ol{margin:0 0 18px;padding-left:20px;color:var(--ink-soft);font-size:15px}
-  .photo-text ol li{margin-bottom:7px}
-  .photo-text strong{color:var(--ink)}
+  .upload-info{flex:1;min-width:240px;text-align:center}
+  .upload-info h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green-deep);font-weight:600;margin-bottom:8px}
+  .upload-lead{color:var(--ink-soft);font-size:15px;max-width:400px;margin:0 auto 18px}
   .photo-btn{
-    display:inline-block;background:var(--gold);color:#fff;text-decoration:none;
-    border-radius:99px;padding:12px 24px;font-weight:600;font-size:15px;transition:background .15s,transform .1s;
+    display:inline-block;background:var(--gold);color:#fff;text-decoration:none;border:none;cursor:pointer;
+    border-radius:99px;padding:12px 24px;font-weight:600;font-size:15px;font-family:'Mulish',sans-serif;
+    transition:background .15s,transform .1s;
   }
   .photo-btn:hover{background:var(--gold-deep)}
   .photo-btn:active{transform:scale(.98)}
-  .photo-hint{color:var(--ink-soft);font-size:13px;margin-top:12px}
+  .photo-btn:disabled{opacity:.6;cursor:default}
+  .upload-progress{margin-top:16px;color:var(--green-deep);font-size:14px;font-weight:600}
+  .photo-hint{color:var(--ink-soft);font-size:13px;margin-top:14px}
+
+  /* ---------- FOTO-ALBUM / GALERIE ---------- */
+  .album-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin:34px 0 14px;
+  }
+  .album-head h3{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--green-deep);font-weight:600}
+  .album-refresh{
+    background:#fff;border:1px solid var(--green-line);border-radius:99px;
+    color:var(--green-deep);font-family:'Mulish',sans-serif;font-weight:600;font-size:13.5px;
+    padding:8px 16px;cursor:pointer;transition:border-color .15s,transform .1s;
+  }
+  .album-refresh:hover{border-color:var(--green-soft)}
+  .album-refresh:active{transform:scale(.97)}
+  .album-refresh:disabled{opacity:.5;cursor:default}
+  .gallery{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
+  }
+  .gallery-tile{
+    position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;cursor:pointer;
+    border:1px solid var(--green-line);background:var(--green-mist);
+    padding:0;display:block;
+  }
+  .gallery-tile img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .3s ease;
+  }
+  .gallery-tile:hover img,.gallery-tile:focus-visible img{transform:scale(1.06)}
+  .gallery-tile:focus-visible{outline:3px solid var(--green-soft);outline-offset:2px}
+  .album-state{
+    text-align:center;color:var(--ink-soft);font-size:14.5px;
+    padding:26px 12px;background:var(--green-mist);border:1px dashed var(--green-soft);
+    border-radius:16px;
+  }
+
+  /* ---------- LIGHTBOX ---------- */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(30,36,24,.92);
+    display:none;align-items:center;justify-content:center;z-index:70;
+    padding:20px;
+  }
+  .lightbox.open{display:flex}
+  .lightbox img{
+    max-width:100%;max-height:calc(100vh - 40px);border-radius:10px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .lb-btn{
+    position:absolute;background:rgba(255,255,255,.14);border:none;color:#fff;
+    width:48px;height:48px;border-radius:50%;font-size:24px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background .15s;
+  }
+  .lb-btn:hover{background:rgba(255,255,255,.28)}
+  .lb-close{top:18px;right:18px;font-size:26px}
+  .lb-prev{left:14px;top:50%;transform:translateY(-50%)}
+  .lb-next{right:14px;top:50%;transform:translateY(-50%)}
+  .lb-count{
+    position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    color:#fff;font-size:13.5px;background:rgba(0,0,0,.35);padding:5px 14px;border-radius:99px;
+  }
+  .lb-download{
+    position:absolute;top:18px;left:18px;color:#fff;text-decoration:none;
+    font-size:13px;background:rgba(255,255,255,.14);padding:8px 14px;border-radius:99px;
+    transition:background .15s;
+  }
+  .lb-download:hover{background:rgba(255,255,255,.28)}
+  @media(max-width:520px){
+    .lb-btn{width:42px;height:42px;font-size:21px}
+    .lb-prev{left:6px}.lb-next{right:6px}
+  }
 
   /* ---------- PASSWORT-GATE ---------- */
   .gate{
@@ -505,29 +588,35 @@
   <section class="panel" id="panel-fotos">
     <div class="intro">
       <h2>Eure Fotos vom Tag</h2>
-      <p>Helft uns, den Tag in Bildern festzuhalten! Ladet eure schönsten Schnappschüsse hoch – sie landen direkt in unserem gemeinsamen Album. 📸</p>
+      <p>Helft uns, den Tag in Bildern festzuhalten! Ladet eure schönsten Schnappschüsse hoch – sie erscheinen direkt hier im gemeinsamen Album. 📸</p>
     </div>
 
-    <div class="photo-card">
-      <div class="qr-box" id="qrBox">
-        <!-- QR-Code wird per JS erzeugt -->
-        <div class="qr-placeholder">QR-Code<br>erscheint hier</div>
+    <div class="photo-card upload-card">
+      <div class="upload-cols">
+        <div class="qr-box" id="qrBox">
+          <div class="qr-placeholder">QR-Code<br>erscheint hier</div>
+        </div>
+        <div class="upload-info">
+          <h3>Fotos beitragen</h3>
+          <p class="upload-lead">Direkt hier auswählen – oder mit dem Handy den QR-Code scannen, um von unterwegs hochzuladen.</p>
+          <input id="photoInput" type="file" accept="image/*" multiple hidden>
+          <button class="photo-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">📤 Fotos auswählen</button>
+          <div class="upload-progress" id="uploadProgress" style="display:none"></div>
+          <p class="photo-hint">Alle hochgeladenen Fotos sind für alle Gäste hier im Album sichtbar. 🌿</p>
+        </div>
       </div>
-      <div class="photo-text">
-        <h3>So einfach geht's</h3>
-        <ol>
-          <li>Mit der Handy-Kamera den <strong>QR-Code</strong> scannen</li>
-          <li>Fotos auswählen und hochladen</li>
-          <li>Fertig – sie landen automatisch in unserem Album</li>
-        </ol>
-        <a class="photo-btn" id="photoLink" href="#" target="_blank" rel="noopener">📤 Direkt Fotos hochladen</a>
-        <p class="photo-hint">Ihr seht nur den Upload – das Album selbst bleibt privat bei uns.</p>
+      <div class="config-warn" id="qrWarn" style="display:none">
+        ⚙️ QR-Code ist erst online sichtbar – beim lokalen Öffnen der Datei kann er nicht angezeigt werden.
       </div>
     </div>
 
-    <div class="config-warn" id="photoWarn" style="display:none">
-      ⚙️ Foto-Upload ist aktuell nicht eingerichtet.
+    <!-- FOTO-ALBUM -->
+    <div class="album-head">
+      <h3>Gemeinsames Album</h3>
+      <button class="album-refresh" id="albumRefresh" onclick="fetchPhotos()">🔄 Aktualisieren</button>
     </div>
+    <div id="albumState" class="album-state">Album wird geladen …</div>
+    <div id="photoGallery" class="gallery"></div>
   </section>
 
   <footer>
@@ -559,6 +648,16 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- LIGHTBOX (Foto-Vollbild) -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto-Ansicht">
+  <button class="lb-btn lb-close" id="lbClose" aria-label="Schließen" onclick="closeLightbox()">×</button>
+  <button class="lb-btn lb-prev" aria-label="Vorheriges Foto" onclick="lightboxStep(-1)">‹</button>
+  <img id="lbImg" src="" alt="Foto in Vollbild">
+  <button class="lb-btn lb-next" aria-label="Nächstes Foto" onclick="lightboxStep(1)">›</button>
+  <a id="lbDownload" class="lb-download" href="#" target="_blank" rel="noopener" download>⬇ Original</a>
+  <div class="lb-count" id="lbCount"></div>
+</div>
+
 <script>
 /* =========================================================
    1) API-KONFIGURATION
@@ -569,20 +668,32 @@
 const API_URL = "https://rpuqhbdxekgvjxyiabnl.supabase.co/functions/v1/buffet-api";
 /* ========================================================= */
 
-/* Buffet-Struktur: Kategorien + Anzahl Slots (aus der Mengenberechnung) */
+// QR-Code zeigt immer auf die aktuell aufgerufene URL (egal wo gehostet) +
+// Sprung direkt in den Fotos-Reiter, damit Scannen dort direkt landet.
+const SITE_URL = location.origin + location.pathname;
+
+/* Buffet-Struktur: Gruppen + Kategorien + Anzahl Slots (aus der Mengenberechnung) */
+const GROUPS = [
+  { key:"kuchenbuffet", emoji:"🎂", title:"Kuchenbuffet" },
+  { key:"abendbuffet",  emoji:"🍽️", title:"Abendbuffet" },
+];
+
 const CATEGORIES = [
-  { key:"salate",   emoji:"🥗", title:"Große Salate",          slots:8,  example:"Kartoffelsalat", hint:"z. B. Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
-  { key:"haupt",    emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  example:"Auflauf", hint:"z. B. Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
-  { key:"finger",   emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  example:"Antipasti", hint:"z. B. Dips, Antipasti, Tomate-Mozzarella, Wraps." },
-  { key:"brot",     emoji:"🥖", title:"Brot & Baguette",        slots:4,  example:"Baguette", hint:"Beilage zu den Salaten – z. B. Baguette, Bauernbrot, Focaccia." },
-  { key:"dessert",  emoji:"🍮", title:"Desserts",               slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
+  { key:"kuchen",   group:"kuchenbuffet", emoji:"🎂", title:"Kuchen & Torten",         slots:10, example:"Marmorkuchen", hint:"z. B. Kuchen, Torten, Cupcakes oder anderes Gebäck – vom Blechkuchen bis zur Sahnetorte, ganz wie ihr mögt." },
+  { key:"salate",   group:"abendbuffet",  emoji:"🥗", title:"Große Salate",            slots:8,  example:"Kartoffelsalat", hint:"z. B. Kartoffel-, Nudel-, Couscous-, gemischter Salat – am besten für ca. 10–12 Personen." },
+  { key:"haupt",    group:"abendbuffet",  emoji:"🍲", title:"Herzhafte Hauptgerichte", slots:8,  example:"Auflauf", hint:"z. B. Aufläufe, Quiche, Chili, Frikadellen – warm oder kalt." },
+  { key:"finger",   group:"abendbuffet",  emoji:"🫒", title:"Fingerfood & Vorspeisen", slots:4,  example:"Antipasti", hint:"z. B. Dips, Antipasti, Tomate-Mozzarella, Wraps." },
+  { key:"brot",     group:"abendbuffet",  emoji:"🥖", title:"Brot & Baguette",         slots:4,  example:"Baguette", hint:"Beilage zu den Salaten – z. B. Baguette, Bauernbrot, Focaccia." },
+  { key:"dessert",  group:"abendbuffet",  emoji:"🍮", title:"Desserts",                slots:6,  example:"Tiramisu", hint:"z. B. Tiramisu, Obstsalat, Muffins & Co." },
 ];
 
 let entries = {};   // key: "cat#index" -> {dish, note, category}  (keine Namen – siehe API)
 let current = null; // {cat, index, isOwn}
 let sitePassword = null;
 let pollTimer = null;
-let photoInitialized = false;
+let albumPhotos = [];        // [{name, thumb, full, mtime}]
+let albumLoaded = false;     // erst beim ersten Öffnen des Fotos-Reiters laden
+let lightboxIndex = -1;
 
 function ownerToken(){
   let t=null;
@@ -610,8 +721,18 @@ function render(){
   const root = document.getElementById("categories");
   root.innerHTML = "";
   let total=0, filled=0;
+  let lastGroup=null;
 
   CATEGORIES.forEach(cat=>{
+    if(cat.group!==lastGroup){
+      lastGroup=cat.group;
+      const g=GROUPS.find(x=>x.key===cat.group);
+      const gh=document.createElement("div");
+      gh.className="group-head";
+      gh.innerHTML=`<span class="group-emoji">${g.emoji}</span><span class="group-title">${g.title}</span>`;
+      root.appendChild(gh);
+    }
+
     let catFilled=0;
     const sec=document.createElement("div"); sec.className="cat";
     const slotsHtml=[];
@@ -766,7 +887,6 @@ function applyListData(data){
   (data.entries||[]).forEach(r=>{entries[r.slot_id]={note:r.note,dish:r.dish,category:r.category};});
   render();
   document.getElementById("configWarn").style.display="none";
-  if(!photoInitialized){ initPhoto(data.photo_upload_url); photoInitialized=true; }
 }
 
 async function fetchList(){
@@ -795,7 +915,14 @@ function startPolling(){
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
 
 document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal();});
+document.getElementById("lightbox").addEventListener("click",e=>{if(e.target.id==="lightbox")closeLightbox();});
 document.addEventListener("keydown",e=>{
+  if(document.getElementById("lightbox").classList.contains("open")){
+    if(e.key==="Escape"){closeLightbox();return;}
+    if(e.key==="ArrowLeft"){lightboxStep(-1);return;}
+    if(e.key==="ArrowRight"){lightboxStep(1);return;}
+    return;
+  }
   if(e.key==="Escape"){closeModal();return;}
   if(e.key==="Tab" && document.getElementById("overlay").classList.contains("open")){
     const focusables=Array.from(document.querySelectorAll("#overlay .modal button, #overlay .modal input"))
@@ -828,6 +955,7 @@ async function checkGate(){
       document.getElementById("gate").classList.add("hidden");
       applyListData(data);
       startPolling();
+      afterUnlock();
     }else{
       showGateError();
     }
@@ -837,6 +965,12 @@ async function checkGate(){
   btn.disabled=false; btn.textContent="Eintreten";
 }
 document.getElementById("gatePw").addEventListener("keydown",e=>{if(e.key==="Enter")checkGate();});
+
+// Läuft einmalig, sobald das Passwort-Gate passiert ist (egal auf welchem Weg).
+function afterUnlock(){
+  initQR();
+  if(location.hash==="#fotos") switchTab("fotos");
+}
 
 // Bereits in dieser Sitzung freigeschaltet? Dann direkt rein.
 let alreadyIn=false, storedPw=null;
@@ -849,6 +983,7 @@ if(alreadyIn && storedPw){
   document.getElementById("gate").classList.add("hidden");
   fetchList();
   startPolling();
+  afterUnlock();
 }else{
   setTimeout(()=>document.getElementById("gatePw").focus(),100);
 }
@@ -860,25 +995,180 @@ function switchTab(name){
   document.getElementById("panel-"+name).classList.add("active");
   document.getElementById("heroEyebrow").style.display = name==="buffet" ? "flex" : "none";
   window.scrollTo({top:document.getElementById("tabs").offsetTop-20,behavior:"smooth"});
+  if(name==="fotos" && !albumLoaded){ albumLoaded=true; fetchPhotos(); }
 }
 
-/* ---------- Foto-Upload / QR-Code ---------- */
-function initPhoto(url){
-  const ok = typeof url==="string" && url.startsWith("http");
-  if(!ok){
-    document.getElementById("photoWarn").style.display="block";
-    document.getElementById("photoLink").style.pointerEvents="none";
-    document.getElementById("photoLink").style.opacity=".5";
+/* ---------- Foto-Album ---------- */
+async function fetchPhotos(){
+  const state=document.getElementById("albumState");
+  const grid=document.getElementById("photoGallery");
+  const btn=document.getElementById("albumRefresh");
+  btn.disabled=true;
+  state.style.display="block";
+  if(!albumPhotos.length) state.textContent="Album wird geladen …";
+  try{
+    const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      action:"photos", password:sitePassword
+    })});
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data || !Array.isArray(data.photos)){
+      state.textContent="⚠️ Das Album konnte gerade nicht geladen werden. Bitte später erneut auf „Aktualisieren“ klicken.";
+      state.style.display="block";
+      btn.disabled=false;
+      return;
+    }
+    albumPhotos = data.photos;
+    renderGallery();
+  }catch(e){
+    state.textContent="⚠️ Verbindung fehlgeschlagen – bitte Internetverbindung prüfen.";
+    state.style.display="block";
+  }
+  btn.disabled=false;
+}
+
+function renderGallery(){
+  const grid=document.getElementById("photoGallery");
+  const state=document.getElementById("albumState");
+  grid.innerHTML="";
+  if(!albumPhotos.length){
+    state.textContent="Noch keine Fotos – macht den Anfang und ladet das erste hoch! 📸";
+    state.style.display="block";
     return;
   }
-  document.getElementById("photoWarn").style.display="none";
-  document.getElementById("photoLink").href=url;
-  document.getElementById("photoLink").style.pointerEvents="";
-  document.getElementById("photoLink").style.opacity="";
+  state.style.display="none";
+  albumPhotos.forEach((p,i)=>{
+    const tile=document.createElement("button");
+    tile.className="gallery-tile";
+    tile.type="button";
+    tile.setAttribute("aria-label","Foto "+(i+1)+" öffnen");
+    tile.onclick=()=>openLightbox(i);
+    const img=document.createElement("img");
+    img.src=p.thumb;
+    img.alt=p.name||("Foto "+(i+1));
+    img.loading="lazy";
+    img.decoding="async";
+    tile.appendChild(img);
+    grid.appendChild(tile);
+  });
+}
+
+/* ---------- Lightbox ---------- */
+function openLightbox(i){
+  if(i<0 || i>=albumPhotos.length) return;
+  lightboxIndex=i;
+  const p=albumPhotos[i];
+  document.getElementById("lbImg").src=p.full;
+  document.getElementById("lbImg").alt=p.name||("Foto "+(i+1));
+  document.getElementById("lbCount").textContent=(i+1)+" / "+albumPhotos.length;
+  document.getElementById("lbDownload").href=p.download||p.full;
+  document.getElementById("lightbox").classList.add("open");
+  setTimeout(()=>document.getElementById("lbClose").focus(),40);
+}
+function closeLightbox(){
+  document.getElementById("lightbox").classList.remove("open");
+  document.getElementById("lbImg").src="";
+  lightboxIndex=-1;
+}
+function lightboxStep(d){
+  if(lightboxIndex<0 || !albumPhotos.length) return;
+  let n=(lightboxIndex+d+albumPhotos.length)%albumPhotos.length;
+  openLightbox(n);
+}
+
+/* ---------- Foto-Upload ---------- */
+const MAX_EDGE = 3000;   // längste Kante beim Verkleinern großer Fotos
+const JPEG_QUALITY = 0.85;
+
+document.getElementById("photoInput").addEventListener("change", handleFiles);
+
+async function handleFiles(e){
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";               // gleiche Datei erneut wählbar machen
+  if(!files.length) return;
+
+  const btn = document.getElementById("uploadBtn");
+  const prog = document.getElementById("uploadProgress");
+  btn.disabled = true;
+  prog.style.display = "block";
+
+  let done=0, ok=0, failed=0;
+  for(const file of files){
+    done++;
+    prog.textContent = "Lade "+done+" / "+files.length+" hoch …";
+    try{
+      const { blob, name } = await processImage(file);
+      const success = await uploadOne(blob, name);
+      success ? ok++ : failed++;
+    }catch(err){
+      failed++;
+    }
+  }
+
+  prog.style.display="none";
+  btn.disabled=false;
+  if(ok && !failed) toast(ok===1 ? "Foto hochgeladen – danke! 🌿" : ok+" Fotos hochgeladen – danke! 🌿");
+  else if(ok && failed) toast(ok+" hochgeladen, "+failed+" fehlgeschlagen.");
+  else toast("Upload fehlgeschlagen – bitte erneut versuchen.");
+
+  if(ok) await fetchPhotos();
+}
+
+// Große Bilder clientseitig verkleinern (Tempo/Zuverlässigkeit); bei Problemen
+// (z. B. HEIC, das der Browser nicht dekodiert) wird das Original unverändert genutzt.
+function processImage(file){
+  return new Promise((resolve)=>{
+    const fallback = ()=>resolve({ blob:file, name:file.name||"foto.jpg" });
+    if(!file.type || !file.type.startsWith("image/")) return fallback();
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      const long = Math.max(img.width, img.height);
+      if(long <= MAX_EDGE && file.size <= 3*1024*1024){ URL.revokeObjectURL(url); return fallback(); }
+      const scale = Math.min(1, MAX_EDGE/long);
+      const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
+      try{
+        const canvas = document.createElement("canvas");
+        canvas.width=w; canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        canvas.toBlob((blob)=>{
+          URL.revokeObjectURL(url);
+          if(!blob) return fallback();
+          const base=(file.name||"foto").replace(/\.[^.]+$/,"");
+          resolve({ blob, name: base+".jpg" });
+        }, "image/jpeg", JPEG_QUALITY);
+      }catch(err){ URL.revokeObjectURL(url); fallback(); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); fallback(); };
+    img.src = url;
+  });
+}
+
+async function uploadOne(blob, filename){
+  try{
+    const form = new FormData();
+    form.append("password", sitePassword);
+    form.append("filename", filename);
+    form.append("file", blob, filename);
+    const res = await fetch(API_URL, { method:"POST", body: form });
+    return res.ok;
+  }catch(e){
+    return false;
+  }
+}
+
+/* ---------- QR-Code (Direktlink zum Foto-Upload) ---------- */
+function initQR(){
+  const ok = typeof SITE_URL==="string" && SITE_URL.startsWith("http");
+  if(!ok){
+    document.getElementById("qrWarn").style.display="block";
+    return;
+  }
+  document.getElementById("qrWarn").style.display="none";
+  const target = SITE_URL + "#fotos";
   const box=document.getElementById("qrBox");
   box.innerHTML="";
   try{
-    new QRCode(box,{text:url,width:176,height:176,
+    new QRCode(box,{text:target,width:156,height:156,
       colorDark:"#5a7741",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
   }catch(e){
     box.innerHTML='<div class="qr-placeholder">QR-Code konnte<br>nicht geladen werden</div>';
