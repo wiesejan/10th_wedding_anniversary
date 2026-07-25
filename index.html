@@ -654,7 +654,7 @@
   <button class="lb-btn lb-prev" aria-label="Vorheriges Foto" onclick="lightboxStep(-1)">‹</button>
   <img id="lbImg" src="" alt="Foto in Vollbild">
   <button class="lb-btn lb-next" aria-label="Nächstes Foto" onclick="lightboxStep(1)">›</button>
-  <a id="lbDownload" class="lb-download" href="#" target="_blank" rel="noopener" download>⬇ Original</a>
+  <a id="lbDownload" class="lb-download" href="#" rel="noopener">⬇ Original</a>
   <div class="lb-count" id="lbCount"></div>
 </div>
 
@@ -1026,10 +1026,45 @@ async function fetchPhotos(){
   btn.disabled=false;
 }
 
+// Bild-Bytes kommen ausschließlich passwortgeschützt über die Edge Function –
+// nie eine direkte Nextcloud-URL im Client, damit niemand Fotos am
+// Seiten-Passwort vorbei abgreifen kann.
+const photoBlobCache = new Map(); // "name|size" -> blob: URL
+async function fetchPhotoBlob(name, size){
+  const key = name+"|"+size;
+  if(photoBlobCache.has(key)) return photoBlobCache.get(key);
+  const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+    action:"photo", password:sitePassword, name, size
+  })});
+  if(!res.ok) throw new Error("photo_fetch_failed");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  photoBlobCache.set(key, url);
+  return url;
+}
+
+const THUMB_CONCURRENCY = 4;
+let thumbQueue = [];
+let thumbActive = 0;
+function queueThumb(name, imgEl){
+  thumbQueue.push({name, imgEl});
+  pumpThumbQueue();
+}
+function pumpThumbQueue(){
+  while(thumbActive < THUMB_CONCURRENCY && thumbQueue.length){
+    const {name, imgEl} = thumbQueue.shift();
+    thumbActive++;
+    fetchPhotoBlob(name,"thumb").then(url=>{ imgEl.src=url; })
+      .catch(()=>{ imgEl.alt="Foto konnte nicht geladen werden"; })
+      .finally(()=>{ thumbActive--; pumpThumbQueue(); });
+  }
+}
+
 function renderGallery(){
   const grid=document.getElementById("photoGallery");
   const state=document.getElementById("albumState");
   grid.innerHTML="";
+  thumbQueue=[];
   if(!albumPhotos.length){
     state.textContent="Noch keine Fotos – macht den Anfang und ladet das erste hoch! 📸";
     state.style.display="block";
@@ -1043,26 +1078,42 @@ function renderGallery(){
     tile.setAttribute("aria-label","Foto "+(i+1)+" öffnen");
     tile.onclick=()=>openLightbox(i);
     const img=document.createElement("img");
-    img.src=p.thumb;
     img.alt=p.name||("Foto "+(i+1));
-    img.loading="lazy";
     img.decoding="async";
     tile.appendChild(img);
     grid.appendChild(tile);
+    queueThumb(p.name, img);
   });
 }
 
 /* ---------- Lightbox ---------- */
-function openLightbox(i){
+async function openLightbox(i){
   if(i<0 || i>=albumPhotos.length) return;
   lightboxIndex=i;
   const p=albumPhotos[i];
-  document.getElementById("lbImg").src=p.full;
-  document.getElementById("lbImg").alt=p.name||("Foto "+(i+1));
+  const imgEl=document.getElementById("lbImg");
+  const dlEl=document.getElementById("lbDownload");
+  imgEl.src="";
+  imgEl.alt=p.name||("Foto "+(i+1));
   document.getElementById("lbCount").textContent=(i+1)+" / "+albumPhotos.length;
-  document.getElementById("lbDownload").href=p.download||p.full;
+  dlEl.onclick=async(e)=>{
+    e.preventDefault();
+    try{
+      const url=await fetchPhotoBlob(p.name,"original");
+      const a=document.createElement("a");
+      a.href=url; a.download=p.name||"foto.jpg";
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(err){
+      toast("Download fehlgeschlagen – bitte erneut versuchen");
+    }
+  };
   document.getElementById("lightbox").classList.add("open");
   setTimeout(()=>document.getElementById("lbClose").focus(),40);
+  try{
+    imgEl.src = await fetchPhotoBlob(p.name,"full");
+  }catch(e){
+    imgEl.alt="Foto konnte nicht geladen werden";
+  }
 }
 function closeLightbox(){
   document.getElementById("lightbox").classList.remove("open");

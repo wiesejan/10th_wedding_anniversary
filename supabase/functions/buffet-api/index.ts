@@ -62,7 +62,7 @@ const PROPFIND_BODY = `<?xml version="1.0" encoding="utf-8"?>
 
 const xmlParser = new XMLParser({ ignoreAttributes: true, removeNSPrefix: true });
 
-type Photo = { name: string; thumb: string; full: string; download: string; mtime: string };
+type Photo = { name: string; mtime: string };
 
 // Leichter Cache, damit paralleles Laden mehrerer Gäste Nextcloud nicht flutet.
 let photoCache: { at: number; data: Photo[] } | null = null;
@@ -133,15 +133,8 @@ async function listPhotos(): Promise<{ photos?: Photo[]; error?: string; status?
     try { name = decodeURIComponent(name); } catch { /* roher Name */ }
     if (!name) continue;
 
-    const enc = encodeURIComponent(name);
-    const fileParam = encodeURIComponent("/" + name);
     photos.push({
       name,
-      // Beide nutzen denselben (bereits als funktionierend bestätigten) Vorschau-Endpunkt,
-      // "full" nur in groß statt der unsicheren /s/token/download-URL-Rateform.
-      thumb: `${base}/apps/files_sharing/publicpreview/${token}?file=${fileParam}&x=500&y=500&a=1`,
-      full: `${base}/apps/files_sharing/publicpreview/${token}?file=${fileParam}&x=2048&y=2048&a=1`,
-      download: `${base}/s/${token}/download?path=%2F&files=${enc}`,
       mtime: (prop?.getlastmodified ?? "").toString(),
     });
   }
@@ -154,6 +147,74 @@ async function listPhotos(): Promise<{ photos?: Photo[]; error?: string; status?
 
   photoCache = { at: Date.now(), data: photos };
   return { photos };
+}
+
+// Lädt die Originaldatei per WebDAV-GET (mit Endpoint-Fallback wie propfind/putPhoto).
+async function fetchOriginal(name: string): Promise<Response | null> {
+  if (!SHARE) return null;
+  const { base, token } = SHARE;
+  const targets = [
+    `${base}/public.php/webdav/${encodeURIComponent(name)}`,
+    `${base}/public.php/dav/files/${token}/${encodeURIComponent(name)}`,
+  ];
+  for (const url of targets) {
+    try {
+      const r = await fetch(url, {
+        headers: { Authorization: "Basic " + btoa(`${token}:${PHOTO_SHARE_PASSWORD}`) },
+      });
+      if (r.ok) return r;
+    } catch (_e) {
+      // nächsten Endpoint versuchen
+    }
+  }
+  return null;
+}
+
+// Holt Bild-Bytes serverseitig aus Nextcloud (Token bleibt hier, nie im Client sichtbar).
+async function fetchPhotoBytes(
+  name: string,
+  size: "thumb" | "full" | "original",
+): Promise<{ ok: boolean; status: number; bytes?: Uint8Array; contentType?: string }> {
+  if (!SHARE) return { ok: false, status: 0 };
+  const { base, token } = SHARE;
+
+  if (size === "original") {
+    const r = await fetchOriginal(name);
+    if (!r) return { ok: false, status: 0 };
+    const bytes = new Uint8Array(await r.arrayBuffer());
+    return { ok: true, status: r.status, bytes, contentType: r.headers.get("content-type") || "application/octet-stream" };
+  }
+
+  const dim = size === "thumb" ? 500 : 2048;
+  const fileParam = encodeURIComponent("/" + name);
+  const url = `${base}/apps/files_sharing/publicpreview/${token}?file=${fileParam}&x=${dim}&y=${dim}&a=1`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return { ok: false, status: r.status };
+    const bytes = new Uint8Array(await r.arrayBuffer());
+    return { ok: true, status: r.status, bytes, contentType: r.headers.get("content-type") || "image/jpeg" };
+  } catch (_e) {
+    return { ok: false, status: 0 };
+  }
+}
+
+async function handlePhotoFetch(body: any): Promise<Response> {
+  if (body.password !== SITE_PASSWORD) return fail(401, "invalid_password");
+  const name = typeof body.name === "string" ? body.name : "";
+  const size = body.size === "full" || body.size === "original" ? body.size : "thumb";
+  if (!name) return fail(400, "missing_fields");
+
+  const result = await fetchPhotoBytes(name, size);
+  if (!result.ok || !result.bytes) return fail(502, "nextcloud_fetch_failed", { status: result.status });
+
+  return new Response(result.bytes, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": result.contentType || "application/octet-stream",
+      "Cache-Control": "private, max-age=300",
+    },
+  });
 }
 
 // Dateinamen entschärfen (keine Pfade/Steuerzeichen) + auf sinnvolle Länge kürzen.
@@ -240,12 +301,15 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => null);
   if (!body || typeof body.action !== "string") return fail(400, "bad_json");
 
+  // Bild-Bytes: eigene Antwortform (Binärdaten statt JSON), daher vorab abgezweigt.
+  if (body.action === "photo") return await handlePhotoFetch(body);
+
   switch (body.action) {
     case "list": {
       if (body.password !== SITE_PASSWORD) return fail(401, "invalid_password");
       const { data, error } = await db.from("buffet").select("slot_id,category,dish,note");
       if (error) return fail(500, "db_error");
-      return ok({ entries: data, photo_upload_url: PHOTO_UPLOAD_URL || null });
+      return ok({ entries: data });
     }
 
     case "photos": {
